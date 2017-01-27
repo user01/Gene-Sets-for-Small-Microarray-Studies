@@ -19,9 +19,9 @@ target_data <- read_tsv(target_file, col_types = cols(PC1 = col_double(), PC2 = 
 target_data %>% glimpse
 
 
-demo(allinit, 'EMCluster', ask = F, echo = F)
 
-assign.class(target_data)
+
+
 
 set.seed(1234)
 
