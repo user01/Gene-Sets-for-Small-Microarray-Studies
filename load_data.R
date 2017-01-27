@@ -16,5 +16,4 @@ Gautier_Immgen_Sample_Metadata <- read_tsv(Gautier_Immgen_Sample_Metadata_PATH, 
 gene_data_vs_cell_type <- EMF_GSVA_Relative_Normalilzed_Expression %>% t %>% as.data.frame %>%
   mutate(GSM_ID = colnames(EMF_GSVA_Relative_Normalilzed_Expression)) %>% inner_join(Gautier_Immgen_Sample_Metadata)
 
-write_tsv(gene_data_vs_cell_type, file.path("results", "gene_data_vs_cell_type.tsv"),
-  col_names = FALSE)
+write_tsv(gene_data_vs_cell_type, file.path("results", "gene_data_vs_cell_type.tsv"))
