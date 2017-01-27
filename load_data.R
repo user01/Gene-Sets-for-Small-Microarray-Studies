@@ -8,6 +8,7 @@ EMF_GSVA_Gene_Set_Enrichment <- read_tsv(EMF_GSVA_Gene_Set_Enrichment_PATH, col_
 EMF_GSVA_Gene_Expression_PATH <- file.path("data", "EMF_GSVA_Relative_Normalilzed_Expression.tsv.tar.gz")
 EMF_GSVA_Gene_Expression <- read_tsv(EMF_GSVA_Gene_Expression_PATH, col_types = cols(.default = col_character(),
   EMF_GSVA_Relative_Normalilzed_Expression.tsv = col_character(), Gene_Set = col_character()))
+EMF_GSVA_Gene_Expression <- EMF_GSVA_Gene_Expression[-20271,]
 #EMF_GSVA_Gene_Expression
 
 numcols <- c(5:141)
