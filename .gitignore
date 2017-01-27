@@ -36,3 +36,7 @@ vignettes/*.pdf
 # Created data files
 results/*
 !results/.gitkeep
+
+
+# Ignore accidental Rplots
+Rplots.pdf
