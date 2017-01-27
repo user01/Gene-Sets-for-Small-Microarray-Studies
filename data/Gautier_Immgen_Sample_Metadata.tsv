@@ -1,0 +1,138 @@
+GSM_ID	Cell_Type	General_Cell_Type
+GSM854326	Microglia	Microglia
+GSM854327	Microglia	Microglia
+GSM854328	Microglia	Microglia
+GSM854262	SI LP Mf	Macrophage
+GSM854263	SI LP Mf	Macrophage
+GSM854264	SI LP Mf	Macrophage
+GSM854265	SI LP Mf	Macrophage
+GSM854266	SI LP Mf	Macrophage
+GSM854267	SI LP Mf	Macrophage
+GSM854268	SI LP Mf	Macrophage
+GSM854271	Lung CD11bPlus Mf	Macrophage
+GSM854272	Lung CD11bPlus Mf	Macrophage
+GSM854280	SI Serosal Mf	Macrophage
+GSM854281	SI Serosal Mf	Macrophage
+GSM854282	SI Serosal Mf	Macrophage
+GSM854283	SI Serosal Mf	Macrophage
+GSM854284	SI Serosal Mf	Macrophage
+GSM854294	Peritoneal F480lo Mf	Macrophage
+GSM854295	Peritoneal F480lo Mf	Macrophage
+GSM854296	Peritoneal F480lo Mf	Macrophage
+GSM854315	LN CD169PlusCD11cPlus Mf	Macrophage
+GSM854316	LN CD169PlusCD11cPlus Mf	Macrophage
+GSM854317	BM Mf	Macrophage
+GSM854318	BM Mf	Macrophage
+GSM854319	BM Mf	Macrophage
+GSM854322	Medullary sinus Mf	Macrophage
+GSM854323	Medullary sinus Mf	Macrophage
+GSM854324	LN subcapsular Mf	Macrophage
+GSM854325	LN subcapsular Mf	Macrophage
+GSM605850	Peritoneal F480hi Mf	Macrophage
+GSM605851	Peritoneal F480hi Mf	Macrophage
+GSM605852	Peritoneal F480hi Mf	Macrophage
+GSM605853	Red pulp Mf	Macrophage
+GSM605854	Red pulp Mf	Macrophage
+GSM605855	Red pulp Mf	Macrophage
+GSM538282	Lung CD11cPlus Mf	Macrophage
+GSM538283	Lung CD11cPlus Mf	Macrophage
+GSM538284	Lung CD11cPlus Mf	Macrophage
+GSM854329	BM Ly6CPlusMHCIIMinus Mo	Monocyte
+GSM854330	BM Ly6CPlusMHCIIMinus Mo	Monocyte
+GSM854331	BM Ly6CPlusMHCIIMinus Mo	Monocyte
+GSM854332	BM Ly6CMinusMHCIIMinus Mo	Monocyte
+GSM854333	BM Ly6CMinusMHCIIMinus Mo	Monocyte
+GSM854334	BM Ly6CMinusMHCIIMinus Mo	Monocyte
+GSM605868	Blood Ly6CPlusMHCIIPlus Mo	Monocyte
+GSM605870	Blood Ly6CPlusMHCIIPlus Mo	Monocyte
+GSM605872	Blood Ly6CPlusMHCIIMinus Mo	Monocyte
+GSM605873	Blood Ly6CPlusMHCIIMinus Mo	Monocyte
+GSM605874	Blood Ly6CPlusMHCIIMinus Mo	Monocyte
+GSM605875	LN Ly6CPlusMHCIIMinus Mo	Monocyte
+GSM605876	LN Ly6CPlusMHCIIMinus Mo	Monocyte
+GSM605877	LN Ly6CPlusMHCIIMinus Mo	Monocyte
+GSM605878	Blood Ly6CMinusMHCIIPlus Mo	Monocyte
+GSM605879	Blood Ly6CMinusMHCIIPlus Mo	Monocyte
+GSM605884	Blood Ly6CMinusMHCIIMinus Mo	Monocyte
+GSM605885	Blood Ly6CMinusMHCIIMinus Mo	Monocyte
+GSM605886	Blood Ly6CMinusMHCIIint Mo	Monocyte
+GSM605887	Blood Ly6CMinusMHCIIint Mo	Monocyte
+GSM605888	Blood Ly6CMinusMHCIIint Mo	Monocyte
+GSM605889	Blood Ly6CMinusMHCIIint Mo	Monocyte
+GSM605890	Blood Ly6CMinusMHCIIint Mo	Monocyte
+GSM854306	Blood PMN	Neutrophil
+GSM854307	Blood PMN	Neutrophil
+GSM854308	Blood PMN	Neutrophil
+GSM605846	BM PMN	Neutrophil
+GSM605847	BM PMN	Neutrophil
+GSM605848	BM PMN	Neutrophil
+GSM605849	BM PMN	Neutrophil
+GSM605826	Spleen CD4Plus DC	Dendritic cell
+GSM538248	Spleen CD4Plus DC	Dendritic cell
+GSM538249	Spleen CD4Plus DC	Dendritic cell
+GSM538250	Spleen CD4Plus DC	Dendritic cell
+GSM538251	Spleen CD4Plus DC	Dendritic cell
+GSM605827	Spleen CD8Plus DC	Dendritic cell
+GSM538258	Spleen CD8Plus DC	Dendritic cell
+GSM538259	Spleen CD8Plus DC	Dendritic cell
+GSM538260	Spleen CD8Plus DC	Dendritic cell
+GSM538261	Spleen CD8Plus DC	Dendritic cell
+GSM605837	Spleen CD4MinusCD8MinusCD11bMinus DC	Dendritic cell
+GSM605838	Spleen CD4MinusCD8MinusCD11bMinus DC	Dendritic cell
+GSM605839	Spleen CD4MinusCD8MinusCD11bMinus DC	Dendritic cell
+GSM605840	Spleen CD8Plus pDC	Dendritic cell
+GSM605841	Spleen CD8Plus pDC	Dendritic cell
+GSM605842	Spleen CD8Plus pDC	Dendritic cell
+GSM605843	Spleen CD8Minus pDC	Dendritic cell
+GSM605844	Spleen CD8Minus pDC	Dendritic cell
+GSM605845	Spleen CD8Minus pDC	Dendritic cell
+GSM538265	Spleen CD4MinusCD8MinusCD11bPlus DC	Dendritic cell
+GSM538266	Spleen CD4MinusCD8MinusCD11bPlus DC	Dendritic cell
+GSM538267	Spleen CD4MinusCD8MinusCD11bPlus DC	Dendritic cell
+GSM854241	Lung CD103Plus DC	Dendritic cell
+GSM854242	Lung CD103Plus DC	Dendritic cell
+GSM538231	Lung CD103Plus DC	Dendritic cell
+GSM538232	Lung CD103Plus DC	Dendritic cell
+GSM538233	Lung CD103Plus DC	Dendritic cell
+GSM854269	Lung CD11bPlusCD24Plus DC	Dendritic cell
+GSM854270	Lung CD11bPlusCD24Plus DC	Dendritic cell
+GSM538234	Liver CD103Plus DC	Dendritic cell
+GSM538235	Liver CD103Plus DC	Dendritic cell
+GSM854273	Kidney CD103MinusCD11bPlusF480lo DC	Dendritic cell
+GSM854274	Kidney CD103MinusCD11bPlusF480lo DC	Dendritic cell
+GSM854275	Kidney CD103MinusCD11bPlusF480lo DC	Dendritic cell
+GSM538280	Skin Langerhans	Dendritic cell
+GSM538281	Skin Langerhans	Dendritic cell
+GSM538201	Spleen follicular B cell	B cell
+GSM538202	Spleen follicular B cell	B cell
+GSM538203	Spleen follicular B cell	B cell
+GSM538210	Spleen MZ B cell	B cell
+GSM538211	Spleen MZ B cell	B cell
+GSM538212	Spleen MZ B cell	B cell
+GSM538207	Spleen GC B cell	B cell
+GSM538208	Spleen GC B cell	B cell
+GSM538209	Spleen GC B cell	B cell
+GSM538222	Peritoneal B1a cell	B cell
+GSM538223	Peritoneal B1a cell	B cell
+GSM538224	Peritoneal B1a cell	B cell
+GSM538228	Peritoneal B1b cell	B cell
+GSM538229	Peritoneal B1b cell	B cell
+GSM538230	Peritoneal B1b cell	B cell
+GSM605769	Spleen Naive CD4	T cell
+GSM538382	Spleen Naive CD4	T cell
+GSM538383	Spleen Naive CD4	T cell
+GSM538384	Spleen Naive CD4	T cell
+GSM538415	Spleen Naive CD8	T cell
+GSM538416	Spleen Naive CD8	T cell
+GSM538417	Spleen Naive CD8	T cell
+GSM538365	Spleen Mem CD4	T cell
+GSM538366	Spleen Mem CD4	T cell
+GSM538367	Spleen Mem CD4	T cell
+GSM538398	Spleen Mem CD8	T cell
+GSM538399	Spleen Mem CD8	T cell
+GSM538400	Spleen Mem CD8	T cell
+GSM399365	Spleen Treg	T cell
+GSM399366	Spleen Treg	T cell
+GSM538315	Spleen NK cell	NK cell
+GSM538316	Spleen NK cell	NK cell
+GSM538317	Spleen NK cell	NK cell
