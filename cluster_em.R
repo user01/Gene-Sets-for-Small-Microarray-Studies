@@ -4,22 +4,27 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(purrr)
   library(stringr)
+  library(argparse)
 })
 
 
-args <- commandArgs(trailingOnly = TRUE)
+parser <- ArgumentParser()
+parser$add_argument("-c", "--clusters", type="integer", default=8,
+    help="Number of clusters to create")
 
-target_file <- if (str_detect(args[1], "\\.tsv$")) {
-  args[1]
-} else {
-  file.path("results", "dimreduced_matrix_pca_1.2.tsv")
-}
+parser$add_argument("-n", "--name", type="character", required=TRUE,
+    help="Name of dimension reduced data set. Used to locate input TSV file and write output TSV. Input TSV must conform to table with Cell_Type, General_Cell_Type, and any number of float fields.")
+args <- parser$parse_args()
 
-data_target <- read_tsv(target_file, col_types = cols(
-  .default = col_double(),
-  Cell_Type = col_character(),
-  General_Cell_Type = col_character()
-))
+
+data_target <- args$name %>%
+  paste0("dimreduced_", ., ".tsv") %>%
+  file.path("results", .) %>%
+  read_tsv(col_types = cols(
+    .default = col_double(),
+    Cell_Type = col_character(),
+    General_Cell_Type = col_character()
+  ))
 # data_target %>% glimpse
 
 
@@ -48,7 +53,7 @@ data_range %>%
     data_labels_target <- data_labels %>% filter(idx == data_range)
 
     # Perform cluster
-    emobj <- emgroup(data_pca_current, nclass = 8)
+    emobj <- emgroup(data_pca_current, nclass = args$clusters)
     ret <- emcluster(data_pca_current, emobj, assign.class = TRUE)
 
     data_pca_target %>%
@@ -85,5 +90,9 @@ data_range %>%
   data_results
 
 
+data_results_path <- args$name %>%
+  paste0("cluster_em_",.,".tsv") %>%
+  file.path("results", .)
+
 data_results %>%
-  write_tsv(file.path("results", "cluster_pca_results.tsv"))
+  write_tsv(data_results_path)
