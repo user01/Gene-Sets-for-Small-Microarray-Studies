@@ -98,11 +98,11 @@ data_range %>%
 
     if (args$plot && dimensions_available == 2) {
       # Render cluster plot
-      paste0("cluster_em_" ,args$name ,"_" ,idx ,".png") %>%
+      paste0("cluster.em." ,args$name , ".", args$clusters, "c_" ,idx ,".png") %>%
         file.path("plots",.) %>%
         png(filename=.)
       plotem(ret, data_pca_current,
-        main=paste0("EM ", args$name, " ", str_pad(idx, 3, pad = "0"), ""),
+        main=paste0("EM ", args$name, " ", args$clusters, " Clusters. ", str_pad(idx, 3, pad = "0"), ""),
         sub=paste0(
           get_label("General", data_labels_target$General_Cell_Type, predicted_class_general_cell_type),
           " ",
@@ -132,14 +132,13 @@ if (args$results) {
   }
   gct_res <- results_str(data_results$General_Cell_Type, data_results$General_Cell_Type_Predicted)
   ct_res <- results_str(data_results$Cell_Type, data_results$Cell_Type_Predicted)
-  paste0("For ",args$name," with ",args$clusters,
+  paste0("For ",args$name," with ", args$clusters,
          " clusters, General Cell Type success was ", gct_res,
          " and Cell Type was ", ct_res, ".") %>%
   print()
 }
 
-data_results_path <- args$name %>%
-  paste0("cluster_em_",.,".tsv") %>%
+data_results_path <- paste0("cluster_em_", args$name, "_", args$clusters, "c.tsv") %>%
   file.path("results", .)
 
 data_results %>%
