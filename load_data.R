@@ -1,18 +1,21 @@
-library(readr)
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+})
 
-EMF_GSVA_Gene_Set_Enrichment_PATH <- file.path("data", "EMF_GSVA_Gene_Set_Enrichment.tsv.tar.gz")
-EMF_GSVA_Gene_Set_Enrichment <- read_tsv(EMF_GSVA_Gene_Set_Enrichment_PATH, col_types = cols(.default = col_integer(),
-  EMF_GSVA_Gene_Set_Enrichment.tsv = col_character(), Gene_Set = col_character()))
-# EMF_GSVA_Gene_Set_Enrichment
 
-EMF_GSVA_Gene_Expression_PATH <- file.path("data", "EMF_GSVA_Relative_Normalilzed_Expression.tsv.tar.gz")
-EMF_GSVA_Gene_Expression <- read_tsv(EMF_GSVA_Gene_Expression_PATH, col_types = cols(.default = col_character(),
-  EMF_GSVA_Relative_Normalilzed_Expression.tsv = col_character(), Gene_Set = col_character()))
-EMF_GSVA_Gene_Expression <- EMF_GSVA_Gene_Expression[-20271,]
-#EMF_GSVA_Gene_Expression
+EMF_GSVA_Relative_Normalilzed_Expression_PATH <- file.path("data", "EMF_GSVA_Relative_Normalilzed_Expression.tsv.tar.gz")
+EMF_GSVA_Relative_Normalilzed_Expression <- read_tsv(EMF_GSVA_Relative_Normalilzed_Expression_PATH,
+  col_types = cols(.default = col_double(), EMF_GSVA_Relative_Normalilzed_Expression.tsv = col_character(),
+    Symbol = col_character(), Entrez = col_integer(), Name = col_character())) %>%
+  filter(!is.na(Symbol)) %>% select(-1:-4)
 
-numcols <- c(5:141)
-EMF_GSVA_Gene_Expression[, numcols] = apply(EMF_GSVA_Gene_Expression[,numcols], 2, 
-  function(x) as.numeric(as.character(x)))
-#Changed gene expression columns to numeric for EMF_GSVA_Gene_Expression
+Gautier_Immgen_Sample_Metadata_PATH <- file.path("data", "Gautier_Immgen_Sample_Metadata.tsv")
+Gautier_Immgen_Sample_Metadata <- read_tsv(Gautier_Immgen_Sample_Metadata_PATH, col_types = cols(GSM_ID = col_character(),
+  Cell_Type = col_character(), General_Cell_Type = col_character()))
+
+gene_data_vs_cell_type <- EMF_GSVA_Relative_Normalilzed_Expression %>% t %>% as.data.frame %>%
+  mutate(GSM_ID = colnames(EMF_GSVA_Relative_Normalilzed_Expression)) %>% inner_join(Gautier_Immgen_Sample_Metadata)
+
+write_tsv(gene_data_vs_cell_type, file.path("results", "gene_data_vs_cell_type.tsv"))
 
