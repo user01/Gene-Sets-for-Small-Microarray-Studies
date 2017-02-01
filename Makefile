@@ -1,5 +1,5 @@
 
-results/results_all.tsv: results/cluster_em_pca_standard_2_8c.tsv results/cluster_em_pca_standard_2_12c.tsv results/cluster_em_pca_standard_8_8c.tsv
+results/results_all.csv: results/cluster_em_pca_standard_2_8c.tsv results/cluster_em_pca_standard_2_12c.tsv results/cluster_em_pca_standard_8_8c.tsv
 	Rscript read_results.R
 
 results/cluster_em_pca_standard_2_8c.tsv: results/dimreduced_pca_standard_2.tsv

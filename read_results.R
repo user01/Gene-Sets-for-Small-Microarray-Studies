@@ -43,7 +43,7 @@ file_data %>%
   results
 
 
-results_path <- file.path("results", "results_all.tsv")
+results_path <- file.path("results", "results_all.csv")
 
 results %>%
-  write_tsv(results_path)
+  write_csv(results_path)
