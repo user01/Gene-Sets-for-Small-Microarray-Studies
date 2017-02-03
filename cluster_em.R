@@ -52,7 +52,13 @@ if (args$plot && dimensions_available != 2) {
 get_top <- function(v) {
   v %>%
     table %>%
-    as.data.frame %>%
+    as.data.frame -> df
+
+  if (nrow(df) < 1) {
+    return(NA)
+  }
+
+  df %>%
     get(".",.) %>%
     nth(1)
 }
@@ -126,7 +132,7 @@ data_range %>%
 
 if (args$results) {
   results_str <- function(truth, predicted) {
-    cnt <- sum(truth == predicted)
+    cnt <- sum(truth == predicted, na.rm = TRUE)
     total = length(truth)
     paste0(cnt,"/",total," (",round(100 * cnt/total), "%)")
   }
