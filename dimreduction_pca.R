@@ -8,8 +8,6 @@ parser <- ArgumentParser()
 parser$add_argument("-d", "--dimensions", type="integer", default=2,
     help="Number of dimensions to recover")
 
-parser$add_argument("-n", "--name", type="character", default="standard",
-    help="Name of data results")
 args <- parser$parse_args()
 
 gene_data_vs_cell_type <- file.path("results", "gene_data_vs_cell_type.tsv") %>%
@@ -35,8 +33,6 @@ pca_results <- expression_data %>%
 
 path_target <- file.path("results",
   paste0("dimreduced_pca_",
-         args$name,
-         "_",
          args$dimensions,
          ".tsv"
          )
