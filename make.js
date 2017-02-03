@@ -1,25 +1,14 @@
 // Dimension reduction methods to run
-const dimensionReductionPasses = [
-  ['pca', 2],
-  ['pca', 4],
-  ['pca', 6],
-  ['pca', 8]
-];
-
+const dimensionReductionData = {
+  methods: ['pca'],
+  sizes: [2, 4, 6, 8]
+};
 // Clustering methods
-const clusterMethods = [
-  'em'
-];
-// Passes to try with each cluster
-const clusterPasses = [
-  ['pca_2', 8],
-  ['pca_2', 10],
-  ['pca_2', 12],
-  ['pca_2', 16],
-  ['pca_8', 8],
-  ['pca_8', 10],
-  ['pca_8', 12]
-];
+const clusterData = {
+  methods: ['em'],
+  sizes: [8, 10, 12, 16] // Passes to try with each cluster
+};
+
 
 // *****************************************************************************
 // Do not edit below this line
@@ -28,8 +17,8 @@ const clusterPasses = [
 const path = require('path'),
   R = require('ramda'),
   chalk = require('chalk'),
-  pad = require('pad');
-moment = require('moment'),
+  pad = require('pad'),
+  moment = require('moment'),
   fs = require('fs'),
   Promise = require('bluebird'),
   spawn = require('child_process').spawn;
@@ -101,6 +90,9 @@ const load_data = () => {
 
 // Perform all dimension reduction
 const dimreduction = () => {
+  const dimensionReductionPasses = R.xprod(
+  dimensionReductionData.methods,
+  dimensionReductionData.sizes);
   return Promise.map(dimensionReductionPasses, (pass) => {
     return make(res(`dimreduced_${pass[0]}_${pass[1]}.tsv`),
       'Rscript', [`dimreduction_${pass[0]}.R`, '--dimensions', pass[1]]);
@@ -112,9 +104,13 @@ const dimreduction = () => {
 // Perform all clustering
 const cluster = () => {
   const combos = R.pipe(
-    R.xprod(clusterMethods),
+    R.xprod(dimensionReductionData.methods),
+    R.map(c => `${c[0]}_${c[1]}`),
+    R.xprod(clusterData.methods),
+    R.xprod(R.__, clusterData.sizes),
     R.map(R.flatten)
-  )(clusterPasses);
+  )(dimensionReductionData.sizes);
+
   return Promise.map(combos, (combo) => {
     return make(res(`cluster_${combo[0]}_${combo[1]}_${combo[2]}c.tsv`),
       'Rscript', [`cluster_${combo[0]}.R`, '--name', combo[1], '--clusters',
