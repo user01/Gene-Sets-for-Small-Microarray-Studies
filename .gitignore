@@ -41,3 +41,5 @@ plots/*
 
 # Ignore accidental Rplots
 Rplots.pdf
+
+node_modules/*
