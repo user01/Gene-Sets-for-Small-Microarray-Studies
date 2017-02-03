@@ -1,6 +1,8 @@
 // Dimension reduction methods to run
 const dimensionReductionPasses = [
   ['pca', 2],
+  ['pca', 4],
+  ['pca', 6],
   ['pca', 8]
 ];
 
@@ -11,8 +13,12 @@ const clusterMethods = [
 // Passes to try with each cluster
 const clusterPasses = [
   ['pca_2', 8],
+  ['pca_2', 10],
   ['pca_2', 12],
-  ['pca_8', 8]
+  ['pca_2', 16],
+  ['pca_8', 8],
+  ['pca_8', 10],
+  ['pca_8', 12]
 ];
 
 // *****************************************************************************
@@ -54,14 +60,14 @@ const cmd = (bin, args) => {
     proc.stdout.on('data', data => stdout += data);
     proc.stderr.on('data', data => stderror += data);
     proc.on('close', code => {
-      // if (code == 0) {
-      //   resolve(`${bin} ${args.join(' ')}`)
-      // } else {
-      //   console.log(stdout);
-      //   console.log(stderror);
-      //   reject(stdout);
-      // }
-      return (code == 0 ? resolve : reject)(`${bin} ${args.join(' ')}`);
+      if (code == 0) {
+        resolve(`${bin} ${args.join(' ')}`)
+      } else {
+        console.log(`${chalk.red.bold(' !!! Error !!!')} in ${args.join(' ')}`);
+        console.log(stdout);
+        console.log(stderror);
+        reject(stdout);
+      }
     });
   });
 };
@@ -69,10 +75,12 @@ const cmd = (bin, args) => {
 
 
 // Performs action, if file does not exist
+var anyMakeRun = false;
 const make = (target, bin, args) => {
   const start = moment();
   return fsAccess(target)
     .catch(x => {
+      anyMakeRun = true;
       console.log(` ${pad(19, chalk.blue('WORKING'), ' ')}:${pad(60, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
       return cmd(bin, args);
     })
@@ -119,7 +127,8 @@ const cluster = () => {
 
 // Read final results
 const readResults = () => {
-  return make(res('results_all.csv'), 'Rscript', ['read_results.R']);
+  return make(res(anyMakeRun ? 'not.real.file' : 'results_all.csv'),
+    'Rscript', ['read_results.R']);
 }
 
 // Full Pipeline
