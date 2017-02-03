@@ -33,8 +33,8 @@ file_data %>%
       results
     data.frame(
       filename = filename,
-      Cell_Type_Success = sum(results$Cell_Type_Correct) / nrow(results),
-      General_Cell_Type_Success = sum(results$General_Cell_Type_Correct) / nrow(results)
+      Cell_Type_Success = sum(results$Cell_Type_Correct, na.rm=TRUE) / nrow(results),
+      General_Cell_Type_Success = sum(results$General_Cell_Type_Correct, na.rm=TRUE) / nrow(results)
     )
   }) %>%
   reduce(rbind) %>%
