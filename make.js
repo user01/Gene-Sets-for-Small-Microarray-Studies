@@ -34,6 +34,9 @@ const info = i => console.log(pad(80, chalk.blue.bold(i), ' '));
 // Utility Functions
 // Checks if file exists
 const fsAccess = (path) => {
+  if (path == false) {
+    return Promise.reject(path);
+  }
   return new Promise(function(resolve, reject) {
     fs.access(path, fs.constants.R_OK, (err) => {
       return (err ? reject : resolve)(path);
@@ -126,7 +129,7 @@ const cluster = () => {
 
 // Read final results
 const readResults = () => {
-  return make(res(anyMakeRun ? 'not.real.file' : 'results_all.csv'),
+  return make(anyMakeRun ? false : res('results_all.csv'),
     'Rscript', ['read_results.R']);
 }
 
