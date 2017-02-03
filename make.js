@@ -80,6 +80,9 @@ const make = (target, bin, args) => {
       const seconds = Math.round(ms / 1000);
       console.log(` ${pad(19, chalk.green('COMPLETED'), ' ')}:${pad(10,`${seconds} sec`,' ')}${pad(50, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
     })
+    .catch( x => {
+      console.log(` ${pad(19, chalk.red('FAILED'), ' ')}:${pad(10,` `,' ')}${pad(50, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
+    });
 };
 
 // Main task functions
