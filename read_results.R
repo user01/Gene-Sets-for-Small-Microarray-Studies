@@ -39,7 +39,8 @@ file_data %>%
   }) %>%
   reduce(rbind) %>%
   inner_join(file_data) %>%
-  select(cluster_method, dimension_reduction_method, notes, Cell_Type_Success, General_Cell_Type_Success) ->
+  select(cluster_method, dimension_reduction_method, notes, Cell_Type_Success, General_Cell_Type_Success) %>%
+  arrange(-Cell_Type_Success) ->
   results
 
 
