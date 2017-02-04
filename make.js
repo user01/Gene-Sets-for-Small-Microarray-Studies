@@ -2,10 +2,10 @@
 const dimensionReductionData = {
   Rscript: {
     pca: {
-      dimensions: [2, 4, 6, 8]
+      dimensions: [2, 3, 4, 5, 6, 7, 8]
     },
     tsne: {
-      perplexity: [30, 40],
+      perplexity: [20, 25, 30, 35, 40],
       pca: [true, false]
     }
   }
@@ -15,7 +15,7 @@ const dimensionReductionData = {
 const clusterData = {
   Rscript: {
     em: {
-      clusters: [8, 10, 12, 16]
+      clusters: [8, 10, 11, 12, 13, 14, 16]
     }
   }
 };
@@ -40,7 +40,7 @@ const start = moment();
 // Helper functions
 const res = (filename) => path.join('results', filename);
 const data = (filename) => path.join('data', filename);
-const info = i => console.log(pad(80, chalk.blue.bold(i), ' '));
+const info = i => console.log(pad(120, chalk.blue.bold(i), ' '));
 
 
 var binToExtension = (binary) => {
@@ -184,7 +184,7 @@ const make = (target, bin, args) => {
     .then(x => {
       const ms = moment().diff(start);
       allMs += ms;
-      if (ms < 10) return;
+      if (ms < 50) return;
       const seconds = Math.round(ms / 1000);
       console.log(` ${pad(19, chalk.green('COMPLETED'), ' ')}:${pad(10,`${seconds} sec`,' ')}${pad(90, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
     })
@@ -242,9 +242,11 @@ load_data()
   .then(x => info('Clustering Finished'))
   .then(readResults)
   .then(x => {
-    const wallTime = Math.round(moment().diff(start) / 1000)
-    const procTime = Math.round(allMs / 1000);
-    info(`All Tasks Finished - Proc: ${procTime}sec, Wall: ${wallTime}sec`);
+    const wallTime = moment.duration(moment().diff(start))
+    const procTime = moment.duration(allMs);
+    info(`All Tasks Finished`);
+    console.log(`${pad(71, chalk.blue("Processing Time:"))}${pad(20,procTime.asSeconds() + ' seconds')}${pad(20,procTime.humanize())}`);
+    console.log(`${pad(71, chalk.blue("Wall Time:"))}${pad(20,wallTime.asSeconds() + ' seconds')}${pad(20,wallTime.humanize())}`);
   });
 
-info('Starting tasks');
+info(`Starting ${clusterTasks.length + dimensionReductionTasks.length} tasks`);
