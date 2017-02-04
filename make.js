@@ -1,12 +1,23 @@
 // Dimension reduction methods to run
 const dimensionReductionData = {
-  methods: ['pca'],
-  sizes: [2, 4, 6, 8]
+  Rscript: {
+    pca: {
+      dimensions: [2, 4, 6, 8]
+    },
+    tsne: {
+      perplexity: [30, 40],
+      pca: [true, false]
+    }
+  }
 };
+
 // Clustering methods
 const clusterData = {
-  methods: ['em'],
-  sizes: [8, 10, 12, 16] // Passes to try with each cluster
+  Rscript: {
+    em: {
+      clusters: [8, 10, 12, 16]
+    }
+  }
 };
 
 
@@ -30,6 +41,100 @@ const start = moment();
 const res = (filename) => path.join('results', filename);
 const data = (filename) => path.join('data', filename);
 const info = i => console.log(pad(80, chalk.blue.bold(i), ' '));
+
+
+var binToExtension = (binary) => {
+  switch (binary) {
+    case 'Rscript':
+      return 'R';
+    case 'python':
+      return 'py';
+    default:
+      return 'unknown';
+  }
+};
+var handleParameters = R.pipe(
+  R.mapObjIndexed((val, key) => {
+    const keys = R.repeat(`--${key}`, R.length(val));
+    const values = R.map(R.toString, val);
+    return R.zip(keys, values);
+  }),
+  R.values,
+  (values) => {
+    return R.reduce(R.xprod, R.head(values), R.tail(values));
+  },
+  R.map(R.flatten)
+);
+
+var filenameObjTo = R.curry((leader, extension, parameters, method_name) => {
+  const filename = `${leader}_${method_name}.${extension}`;
+  const paramChains = handleParameters(parameters);
+  const filenames = R.repeat(filename, R.length(paramChains));
+  const methodNames = R.repeat(method_name, R.length(paramChains));
+  const filename_methods = R.zip(filenames, methodNames);
+  const paramChainsNested = R.map(x => [x], paramChains);
+  // `dimreduced_${task[0]}_${task[1]}.tsv`
+  const resultFilenames = R.map(chain =>
+    `${leader}_${method_name}_||_${chain.map(R.replace('--','')).join('_')}.tsv`,
+    paramChains);
+  const all = R.pipe(
+    R.zip(filename_methods),
+    R.map(R.unnest)
+  )(resultFilenames)
+
+  return R.pipe(
+    R.zip(all),
+    // R.zip(filename_methods),
+    R.map(R.unnest)
+  )(paramChainsNested);
+});
+var taskify = (leader) => {
+  return R.pipe(
+    R.mapObjIndexed((filedata, binary) => {
+      const fileDatas = R.pipe(
+        R.mapObjIndexed(filenameObjTo(leader, binToExtension(binary))),
+        R.values,
+        R.unnest
+      )(filedata);
+      return R.pipe(
+        R.repeat(R.__, R.length(fileDatas)),
+        R.zip(R.__, fileDatas),
+        R.map(R.unnest)
+      )(binary);
+    }),
+    R.values,
+    R.unnest
+  );
+};
+
+var taskToName = (task, existingArgs) => {
+  const name = R.pipe(
+    R.nth(4),
+    R.map(R.replace('--', '')),
+    R.join('_')
+  )(task);
+  return R.pipe(
+    R.append('--name'),
+    // R.append(task)
+    R.append(`${task[2]}_${name}`)
+  )(existingArgs);
+};
+
+var dimensionReductionTasks = taskify('dimreduction')(dimensionReductionData);
+var clusterTasks = R.pipe(
+  taskify('cluster'),
+  R.xprod(R.__, dimensionReductionTasks),
+  R.map(task => {
+    const newArgs = taskToName(task[1], task[0][4]);
+    const newTarget = task[0][3].replace('||', R.last(newArgs));
+    return R.pipe(
+      R.head,
+      R.remove(2, 3), // Remove the name, old target
+      R.concat(R.__, [newTarget, newArgs])
+    )(task)
+  })
+)(clusterData);
+clusterTasks
 
 // Utility Functions
 // Checks if file exists
@@ -73,7 +178,7 @@ const make = (target, bin, args) => {
   return fsAccess(target)
     .catch(x => {
       anyMakeRun = true;
-      console.log(` ${pad(19, chalk.blue('WORKING'), ' ')}:${pad(60, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
+      console.log(` ${pad(19, chalk.blue('WORKING'), ' ')}:${pad(100, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
       return cmd(bin, args);
     })
     .then(x => {
@@ -81,10 +186,10 @@ const make = (target, bin, args) => {
       allMs += ms;
       if (ms < 10) return;
       const seconds = Math.round(ms / 1000);
-      console.log(` ${pad(19, chalk.green('COMPLETED'), ' ')}:${pad(10,`${seconds} sec`,' ')}${pad(50, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
+      console.log(` ${pad(19, chalk.green('COMPLETED'), ' ')}:${pad(10,`${seconds} sec`,' ')}${pad(90, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
     })
-    .catch( x => {
-      console.log(` ${pad(19, chalk.red('FAILED'), ' ')}:${pad(10,` `,' ')}${pad(50, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
+    .catch(x => {
+      console.log(` ${pad(19, chalk.red('FAILED'), ' ')}:${pad(10,` `,' ')}${pad(90, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
     });
 };
 
@@ -96,12 +201,17 @@ const load_data = () => {
 
 // Perform all dimension reduction
 const dimreduction = () => {
-  const dimensionReductionPasses = R.xprod(
-  dimensionReductionData.methods,
-  dimensionReductionData.sizes);
-  return Promise.map(dimensionReductionPasses, (pass) => {
-    return make(res(`dimreduced_${pass[0]}_${pass[1]}.tsv`),
-      'Rscript', [`dimreduction_${pass[0]}.R`, '--dimensions', pass[1]]);
+  const correctedTasks = R.map(task => {
+    const newName = task[3].replace('||_', '');
+    return R.pipe(
+      R.remove(3, 1),
+      R.insert(2, newName),
+      R.remove(3, 1)
+    )(task);
+  }, dimensionReductionTasks);
+  return Promise.map(correctedTasks, (task) => {
+    return make(res(task[2]),
+      task[0], R.prepend(task[1], task[3]));
   }, {
     concurrency: 6
   });
@@ -109,19 +219,9 @@ const dimreduction = () => {
 
 // Perform all clustering
 const cluster = () => {
-  const combos = R.pipe(
-    R.xprod(dimensionReductionData.methods),
-    R.map(c => `${c[0]}_${c[1]}`),
-    R.xprod(clusterData.methods),
-    R.xprod(R.__, clusterData.sizes),
-    R.map(R.flatten)
-  )(dimensionReductionData.sizes);
-
-  return Promise.map(combos, (combo) => {
-    return make(res(`cluster_${combo[0]}_${combo[1]}_${combo[2]}c.tsv`),
-      'Rscript', [`cluster_${combo[0]}.R`, '--name', combo[1], '--clusters',
-        combo[2], '--plot', '--results'
-      ]);
+  return Promise.map(clusterTasks, (task) => {
+    return make(res(task[2]),
+      task[0], R.prepend(task[1], task[3]));
   }, {
     concurrency: 6
   });
