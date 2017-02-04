@@ -31,8 +31,9 @@ pca_results <- expression_data %>%
 # pca_results %>% glimpse
 # plot(pca_results$x[,1:2])
 
+# dimreduction_pca_dimensions_2.tsv
 path_target <- file.path("results",
-  paste0("dimreduced_pca_",
+  paste0("dimreduction_pca_dimensions_",
          args$dimensions,
          ".tsv"
          )
