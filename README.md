@@ -16,3 +16,9 @@ The pipeline is controlled by `main.js`. Install proper make dependencies with `
 Add components to the pipeline by amending the start of `main.js` and adding the appropriate script.
 
 ### Dimensional Reduction format
+
+Scripts must match the form of `dimreduction_{method}.{extension}`.
+
+Scripts must accept parameters of the form `--parameter_name value` and must always be key/value pairs (ie no flags).
+
+Scripts must write to the `results/` directory with tsv data of the form `dimreduction_{method}_[{key}_{value}].tsv`, with every key/value. The data must have the truth labels for each observation (Cell_Type and General_Cell_Type) and >2 other columns of floating values.
