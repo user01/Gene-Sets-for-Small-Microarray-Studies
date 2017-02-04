@@ -20,6 +20,9 @@ const clusterData = {
   }
 };
 
+// Change this parameter to adjust the maximum number of cores
+const concurrency = 6;
+
 
 // *****************************************************************************
 // Do not edit below this line
@@ -213,7 +216,7 @@ const dimreduction = () => {
     return make(res(task[2]),
       task[0], R.prepend(task[1], task[3]));
   }, {
-    concurrency: 6
+    concurrency
   });
 };
 
@@ -223,7 +226,7 @@ const cluster = () => {
     return make(res(task[2]),
       task[0], R.prepend(task[1], task[3]));
   }, {
-    concurrency: 6
+    concurrency
   });
 }
 
