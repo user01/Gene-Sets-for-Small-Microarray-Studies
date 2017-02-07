@@ -16,6 +16,9 @@ const clusterData = {
   Rscript: {
     em: {
       clusters: [8, 10, 11, 12, 13, 14, 16]
+    },
+    randomforest: {
+      trees: [32, 64, 128, 256]
     }
   }
 };
