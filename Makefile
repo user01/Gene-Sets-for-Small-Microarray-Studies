@@ -2,4 +2,4 @@
 clean:
 	-$(RM) results/*.tsv
 	-$(RM) results/*.csv
-	-$(RM) plots/*.png
+	-find ./plots -name "*.png" -print0 | xargs -0 rm
