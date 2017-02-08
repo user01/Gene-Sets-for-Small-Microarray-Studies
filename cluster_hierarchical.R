@@ -170,7 +170,7 @@ paste0("For ", name," with ", clusters,
        " and Cell Type was ", ct_res, ".") %>%
        print()
 
-data_results_path <- paste0("cluster_hierarchical_", name, "_clusters_", clusters, "_method_", method, ".tsv") %>%
+data_results_path <- paste0("cluster_hierarchical_", name, "_clusters_", clusters, "_methodcluster_", method_cluster, "_methoddistance_", method_distance, "_neighbors_", neighbors, ".tsv") %>%
   file.path("results", .)
 
 data_results %>%
