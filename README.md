@@ -20,6 +20,7 @@ The process depends on a modern R (>3.3.*) and python (>3.5) environment. The fo
 #### R
 
  * EMCluster
+ * randomForest
  * Rtsne
  * readr
  * dplyr

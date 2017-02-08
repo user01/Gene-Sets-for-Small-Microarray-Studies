@@ -17,6 +17,9 @@ const clusterData = {
     em: {
       clusters: [8, 10, 11, 12, 13, 14, 16]
     },
+    randomforest: {
+      trees: [32, 64, 128, 256]
+    },
     hierarchical: {
       clusters: [8, 10, 12, 14, 16],
       methodcluster: ['ward.D', 'single', 'complete', 'average'],
