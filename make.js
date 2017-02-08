@@ -16,6 +16,11 @@ const clusterData = {
   Rscript: {
     em: {
       clusters: [8, 10, 11, 12, 13, 14, 16]
+    },
+    hierarchical: {
+      clusters: [8, 10, 12, 14, 16],
+      methodcluster: ['ward.D', 'ward.D2', 'single', 'complete', 'average', 'mcquitty', 'median', 'centroid'],
+      methoddistance: ['euclidean', 'maximum', 'manhattan', 'canberra', 'binary', 'minkowski']
     }
   }
 };
