@@ -19,8 +19,8 @@ const clusterData = {
     },
     hierarchical: {
       clusters: [8, 10, 12, 14, 16],
-      methodcluster: ['ward.D', 'ward.D2', 'single', 'complete', 'average', 'mcquitty', 'median', 'centroid'],
-      methoddistance: ['euclidean', 'maximum', 'manhattan', 'canberra', 'binary', 'minkowski']
+      methodcluster: ['ward.D', 'single', 'complete', 'average'],
+      methoddistance: ['euclidean', 'maximum', 'manhattan']
     }
   }
 };
