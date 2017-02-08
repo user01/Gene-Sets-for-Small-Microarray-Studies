@@ -59,7 +59,7 @@ var binToExtension = (binary) => {
 var handleParameters = R.pipe(
   R.mapObjIndexed((val, key) => {
     const keys = R.repeat(`--${key}`, R.length(val));
-    const values = R.map(R.toString, val);
+    const values = R.map(i => ''+i, val);
     return R.zip(keys, values);
   }),
   R.values,
