@@ -17,9 +17,6 @@ parser$add_argument("-d", "--methoddistance", type="character", default="euclide
 parser$add_argument("-c", "--clusters", type="integer", default=8,
     help="Number of clusters to create")
 
-parser$add_argument("-k", "--neighbors", type="integer", default=1,
-    help="Number of nieghbors to consider for classifying cluster")
-
 parser$add_argument("-n", "--name", type="character", required=TRUE,
     help="Name of dimension reduced data set. Used to locate input TSV file and write output TSV. Input TSV must conform to table with Cell_Type, General_Cell_Type, and any number of float fields.")
 
@@ -170,7 +167,7 @@ paste0("For ", name," with ", clusters,
        " and Cell Type was ", ct_res, ".") %>%
        print()
 
-data_results_path <- paste0("cluster_hierarchical_", name, "_clusters_", clusters, "_methodcluster_", method_cluster, "_methoddistance_", method_distance, "_neighbors_", neighbors, ".tsv") %>%
+data_results_path <- paste0("cluster_hierarchical_", name, "_clusters_", clusters, "_methodcluster_", method_cluster, "_methoddistance_", method_distance, ".tsv") %>%
   file.path("results", .)
 
 data_results %>%
