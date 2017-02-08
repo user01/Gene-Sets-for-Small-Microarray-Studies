@@ -1,92 +1,177 @@
-#assume gene_data_vs_cell_type dataframe exists after running load_data.R file
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(purrr)
+  library(stringr)
+  library(argparse)
+})
 
-#run rtsne to get coordinates of extract features
-rtsne_out <- Rtsne(as.matrix(gene_data_vs_cell_type[, 1:20270]), pca = FALSE, verbose = TRUE, perplexity = 20)
 
-# (optional, might not need in this file). Changing the cell classes to factors in order to 
-# visualize our data. plotting our data. 
-gene_data_vs_cell_type$General_Cell_Type<-as.factor(gene_data_vs_cell_type$General_Cell_Type)
-gene_data_vs_cell_type$Cell_Type<-as.factor(gene_data_vs_cell_type$Cell_Type)
-plot(rtsne_out$Y,col=gene_data_vs_cell_type$General_Cell_Type)
-plot(rtsne_out$Y,col=gene_data_vs_cell_type$Cell_Type)
+parser <- ArgumentParser()
+parser$add_argument("-m", "--methodcluster", type="character", default="complete",
+    help="Type of cluster to create ('ward.D', 'ward.D2', 'single', 'complete', 'average', 'mcquitty', 'median' or 'centroid')")
 
-#Heirarchical clustering
-hc.complete=hclust(dist(rtsne_out$Y), method="complete")
-hc.average=hclust(dist(rtsne_out$Y), method="average")
-hc.single=hclust(dist(rtsne_out$Y), method="single")
+parser$add_argument("-d", "--methoddistance", type="character", default="euclidean",
+    help="Type of distance to compute 'euclidean', 'maximum', 'manhattan', 'canberra', 'binary' or 'minkowski'")
 
-#(optional, might not need in this file). Plotting our dendrogram.
-par(mfrow=c(1,3))
-plot(hc.complete,main="Complete Linkage", xlab="", sub="",
-     cex =.9)
-plot(hc.average , main="Average Linkage", xlab="", sub="",
-     cex =.9)
-plot(hc.single , main="Single Linkage", xlab="", sub="",
-     cex =.9)
+parser$add_argument("-c", "--clusters", type="integer", default=8,
+    help="Number of clusters to create")
 
-#Making a new dataframe that will contain our predicted classes
-gene.v.cell.tsne = Gautier_Immgen_Sample_Metadata[,2:3]
+parser$add_argument("-k", "--neighbors", type="integer", default=1,
+    help="Number of nieghbors to consider for classifying cluster")
 
-#combining classes of three different link functions of HC to our known classes
-gene.v.cell.tsne = cbind(gene.v.cell.tsne, cutree(hc.single,8))
-gene.v.cell.tsne = cbind(gene.v.cell.tsne, cutree(hc.average,8))
-gene.v.cell.tsne = cbind(gene.v.cell.tsne, cutree(hc.complete,8))
+parser$add_argument("-n", "--name", type="character", required=TRUE,
+    help="Name of dimension reduced data set. Used to locate input TSV file and write output TSV. Input TSV must conform to table with Cell_Type, General_Cell_Type, and any number of float fields.")
 
-#combining X, Y coordinates of rTSNE to our classification
-gene.v.cell.tsne = cbind(gene.v.cell.tsne, rtsne_out$Y)
+args <- parser$parse_args()
 
-#renaming column names of gene.v.cell.tsne
-names(gene.v.cell.tsne)[names(gene.v.cell.tsne) == 'cutree(hc.single, 8)'] <- 's.link.class'
-names(gene.v.cell.tsne)[names(gene.v.cell.tsne) == 'cutree(hc.average, 8)'] <- 'a.link.class'
-names(gene.v.cell.tsne)[names(gene.v.cell.tsne) == 'cutree(hc.complete, 8)'] <- 'c.link.class'
-names(gene.v.cell.tsne)[names(gene.v.cell.tsne) == '1'] <- 'x.tsne'
-names(gene.v.cell.tsne)[names(gene.v.cell.tsne) == '2'] <- 'y.tsne'
+name <- args$name
+# name <- "pca_dimensions_2"
+method_cluster <- args$methodcluster
+# method_cluster <- "complete"
+method_distance <- args$methoddistance
+# method_distance <- "euclidean"
+clusters <- args$clusters
+# clusters <- 8
+neighbors <- args$neighbors
+# neighbors <- 3
 
-#storing the mean x.tsne and y.tsne for each class for each link 
-s.link.mean <- aggregate(gene.v.cell.tsne[,6:7], list(gene.v.cell.tsne$s.link.class), mean)
-a.link.mean <- aggregate(gene.v.cell.tsne[,6:7], list(gene.v.cell.tsne$a.link.class), mean)
-c.link.mean <- aggregate(gene.v.cell.tsne[,6:7], list(gene.v.cell.tsne$c.link.class), mean)
+data_target <- name %>%
+  paste0("dimreduction_", ., ".tsv") %>%
+  file.path("results", .) %>%
+  read_tsv(col_types = cols(
+    .default = col_double(),
+    Cell_Type = col_character(),
+    General_Cell_Type = col_character()
+  )) %>%
+  mutate(
+    Cell_Type = as.factor(Cell_Type),
+    General_Cell_Type = as.factor(General_Cell_Type)
+  )
 
-#renaming Group.1 column for the mean dataframe for each link
-names(s.link.mean)[names(s.link.mean) == 'Group.1'] <- 'class'
-names(a.link.mean)[names(a.link.mean) == 'Group.1'] <- 'class'
-names(c.link.mean)[names(c.link.mean) == 'Group.1'] <- 'class'
+data_floats <- data_target %>% select(-Cell_Type, -General_Cell_Type)
+data_labels <- data_target %>% select(Cell_Type, General_Cell_Type)
+data_range <- 1:nrow(data_target)
+data_floats %>%
+  colnames %>%
+  length -> dimensions_available
 
-#writing Euclidean distance function
-euc.dist <- function(x1, x2) sqrt(sum((x1 - x2) ^ 2))
+get_top <- function(v) {
+  v %>%
+    table %>%
+    as.data.frame -> df
 
-#(Code below is very naive, there exists better ways to optimize code)
-#example classification of a new testing example s.link
-test = c(-3,3)
-s.link.dist = c()
-for (i in 1: nrow(s.link.mean)){
-  s.link.dist <- c(s.link.dist, euc.dist(test, s.link.mean[i,2:3]))
+  if (nrow(df) < 1) {
+    return(NA)
+  }
+
+  df %>%
+    get(".",.) %>%
+    nth(1)
 }
 
-#storing the predicted class based on s.link
-predicted.class.s.link = which(s.link.dist == min(s.link.dist))
+classify <- function(training_floats,
+                     training_labels,
+                     testing_floats,
+                     testing_labels,
+                     clusters) {
 
-#example classification of a new testing example a.link
-test = c(-3,3)
-a.link.dist = c()
-for (i in 1: nrow(a.link.mean)){
-  a.link.dist <- c(a.link.dist, euc.dist(test, a.link.mean[i,2:3]))
+  training_floats %>%
+    aggregate(by=list(clusters), FUN=mean) ->
+    agg_clusters
+
+  agg_clusters %>%
+    select(-`Group.1`) %>%
+    rbind(testing_floats) %>%
+    data.frame %>%
+    dist(method = method_distance) %>%
+    as.matrix %>%
+    as.data.frame %>%
+    slice(1:(nrow(.)-1)) %>%
+    select(ncol(.)) %>%
+    unname %>%
+    unlist ->
+    distances # distances that match with the cluster centers
+
+  data.frame(distances=distances) %>%
+    cbind(agg_clusters) %>%
+    arrange(distances) %>%
+    slice(1) %>%
+    select(`Group.1`) %>%
+    unlist %>%
+    unname ->
+    picked_cluster
+
+
+  data.frame(cluster=clusters) %>%
+    cbind(training_labels) %>%
+    filter(cluster == picked_cluster) %>%
+    select(-cluster) ->
+    labels_in_cluster
+
+  labels_in_cluster %>%
+    select(Cell_Type) %>%
+    unlist %>%
+    get_top ->
+    cell_type_predicted
+  labels_in_cluster %>%
+    select(General_Cell_Type) %>%
+    unlist %>%
+    get_top ->
+    general_cell_type_predicted
+
+  data.frame(
+    Cell_Type_Predicted=cell_type_predicted,
+    General_Cell_Type_Predicted=general_cell_type_predicted)
 }
 
-#storing the predicted class based on a.link
-predicted.class.a.link = which(a.link.dist == min(a.link.dist))
+data_range %>%
+  map(function(idx){
 
-#example classification of a new testing example c.link
-test = c(-3,3)
-c.link.dist = c()
-for (i in 1: nrow(c.link.mean)){
-  c.link.dist <- c(c.link.dist, euc.dist(test, c.link.mean[i,2:3]))
+    # Create data sets
+    data_floats_train <- data_floats %>% filter(idx != data_range)
+    data_labels_train <- data_labels %>% filter(idx != data_range)
+    data_floats_test <- data_floats %>% filter(idx == data_range)
+    data_labels_test <- data_labels %>% filter(idx == data_range)
+
+    # Perform cluster
+    distances <- dist(data_floats_train, method = method_distance) # distance matrix
+    fit <- hclust(distances, method=method_cluster)
+    fit_clusters <- cutree(fit, k=clusters) # cut tree into clusters
+
+    # Classify remaining point
+    classified <- classify(data_floats_train,
+                           data_labels_train,
+                           data_floats_test,
+                           data_labels_test,
+                           fit_clusters)
+
+    data.frame(
+        idx = idx,
+        Cell_Type = data_labels_test$Cell_Type,
+        General_Cell_Type = data_labels_test$General_Cell_Type
+      ) %>%
+      cbind(classified)
+  }) %>%
+  reduce(rbind) %>%
+  as.data.frame %>%
+  select(idx, Cell_Type, Cell_Type_Predicted, General_Cell_Type, General_Cell_Type_Predicted) ->
+  data_results
+
+results_str <- function(truth, predicted) {
+  cnt <- sum(as.character(truth) == as.character(predicted), na.rm = TRUE)
+  total = length(truth)
+  paste0(cnt,"/",total," (",round(100 * cnt/total), "%)")
 }
+gct_res <- results_str(data_results$General_Cell_Type, data_results$General_Cell_Type_Predicted)
+ct_res <- results_str(data_results$Cell_Type, data_results$Cell_Type_Predicted)
+paste0("For ", name," with ", clusters,
+       " clusters, General Cell Type success was ", gct_res,
+       " and Cell Type was ", ct_res, ".") %>%
+       print()
 
-#storing the predicted class based on c.link
-predicted.class.c.link = which(c.link.dist == min(c.link.dist))
+data_results_path <- paste0("cluster_hierarchical_", name, "_clusters_", clusters, "_method_", method, ".tsv") %>%
+  file.path("results", .)
 
-#NOTE: There are different ways to classify a testing point based on a testing point.
-#It is also better to associate a cell type for each class number of each link first, since
-#the cell type for class 1 for s.link might be a different cell type for class 1 for a.link.
-#We may want to discuss how to classify these as a team before proceeding.
+data_results %>%
+  write_tsv(data_results_path)
