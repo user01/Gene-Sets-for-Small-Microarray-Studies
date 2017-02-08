@@ -20,6 +20,9 @@ const clusterData = {
     randomforest: {
       trees: [32, 64, 128, 256]
     },
+    kmeans: {
+      clusters: [8, 10, 12, 14, 16]
+    },
     hierarchical: {
       clusters: [8, 10, 12, 14, 16],
       methodcluster: ['ward.D', 'single', 'complete', 'average'],
