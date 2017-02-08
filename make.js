@@ -43,7 +43,7 @@ const start = moment();
 // Helper functions
 const res = (filename) => path.join('results', filename);
 const data = (filename) => path.join('data', filename);
-const info = i => console.log(pad(120, chalk.blue.bold(i), ' '));
+const info = i => console.log(pad(140, chalk.blue.bold(i), ' '));
 
 
 var binToExtension = (binary) => {
@@ -178,10 +178,15 @@ const cmd = (bin, args) => {
 var anyMakeRun = false;
 const make = (target, bin, args) => {
   const start = moment();
+  const logTarget = () => {
+    console.log(` ${pad(140, chalk.yellow(target), ' ')}`);
+    console.log(` ${pad(140, chalk.white(args.join(' ')), ' ')}`);
+  }
   return fsAccess(target)
     .catch(x => {
       anyMakeRun = true;
-      console.log(` ${pad(19, chalk.blue('WORKING'), ' ')}:${pad(100, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
+      console.log(` ${pad(80, chalk.blue('WORKING'), ' ')}`);
+      logTarget();
       return cmd(bin, args);
     })
     .then(x => {
@@ -189,10 +194,12 @@ const make = (target, bin, args) => {
       allMs += ms;
       if (ms < 50) return;
       const seconds = Math.round(ms / 1000);
-      console.log(` ${pad(19, chalk.green('COMPLETED'), ' ')}:${pad(10,`${seconds} sec`,' ')}${pad(90, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
+      console.log(` ${pad(80, `${seconds} seconds  ` + chalk.green('COMPLETED'), ' ')}`);
+      logTarget();
     })
     .catch(x => {
-      console.log(` ${pad(19, chalk.red('FAILED'), ' ')}:${pad(10,` `,' ')}${pad(90, chalk.yellow(target), ' ')} : ${args.join(' ')}`);
+      console.log(` ${pad(19, chalk.red('FAILED'), ' ')}`);
+      logTarget();
     });
 };
 
