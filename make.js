@@ -1,39 +1,9 @@
-// Dimension reduction methods to run
-const dimensionReductionData = {
-  Rscript: {
-    pca: {
-      dimensions: [2, 3, 4, 5, 6, 7, 8]
-    },
-    tsne: {
-      perplexity: [20, 25, 30, 35, 40],
-      pca: [true, false]
-    }
-  }
-};
+const fs = require('fs');
 
-// Clustering methods
-const clusterData = {
-  Rscript: {
-    em: {
-      clusters: [8, 10, 11, 12, 13, 14, 16]
-    },
-    randomforest: {
-      trees: [32, 64, 128, 256]
-    },
-    kmeans: {
-      clusters: [8, 10, 12, 14, 16]
-    },
-    hierarchical: {
-      clusters: [8, 10, 12, 14, 16],
-      methodcluster: ['ward.D', 'single', 'complete', 'average'],
-      methoddistance: ['euclidean', 'maximum', 'manhattan']
-    }
-  }
-};
-
+const dimensionReductionData = JSON.parse(fs.readFileSync('data_dimensionreduction.json').toString());
+const clusterData = JSON.parse(fs.readFileSync('data_cluster.json').toString());
 // Change this parameter to adjust the maximum number of cores
 const concurrency = 6;
-
 
 // *****************************************************************************
 // Do not edit below this line
@@ -44,7 +14,6 @@ const path = require('path'),
   chalk = require('chalk'),
   pad = require('pad'),
   moment = require('moment'),
-  fs = require('fs'),
   Promise = require('bluebird'),
   spawn = require('child_process').spawn;
 
