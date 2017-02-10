@@ -8,6 +8,12 @@ const path = require('path'),
   spawn = require('child_process').spawn;
 
 
+const readJson = R.pipe(
+  fs.readFileSync,
+  (buf) => buf.toString(),
+  JSON.parse
+);
+
 const binToExtension = (binary) => {
   switch (binary) {
     case 'Rscript':
@@ -152,6 +158,7 @@ const make = (target, bin, args, noteRun, noteMs) => {
 };
 
 module.exports = {
+  readJson,
   binToExtension,
   handleParameters,
   filenameObjTo,

@@ -1,37 +1,23 @@
-const fs = require('fs');
-
-const dimensionReductionData = JSON.parse(fs.readFileSync('data_dimensionreduction.json').toString());
-const clusterData = JSON.parse(fs.readFileSync('data_cluster.json').toString());
-// Change this parameter to adjust the maximum number of cores
-const concurrency = 6;
-
-// *****************************************************************************
-// Do not edit below this line
-// *****************************************************************************
 // Import Libraries
-const path = require('path'),
-  R = require('ramda'),
+const R = require('ramda'),
   chalk = require('chalk'),
   pad = require('pad'),
   moment = require('moment'),
-  Promise = require('bluebird'),
-  spawn = require('child_process').spawn;
+  Promise = require('bluebird');
 
-
-// Helper functions
 const {
-  binToExtension,
-  handleParameters,
-  filenameObjTo,
+  readJson,
   taskToName,
   taskify,
-  fsAccess,
-  cmd,
   make,
   res,
-  data,
   info
 } = require('./tools.js');
+
+const dimensionReductionData = readJson('data_dimensionreduction.json');
+const clusterData = readJson('data_cluster.json');
+// Change this parameter to adjust the maximum number of cores
+const concurrency = 6;
 
 
 const dimensionReductionTasks = taskify('dimreduction')(dimensionReductionData);
