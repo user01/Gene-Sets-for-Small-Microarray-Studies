@@ -9,8 +9,8 @@ parser <- ArgumentParser()
 parser$add_argument("-s", "--seed", type="integer", default=451,
     help="Random seed")
 
-parser$add_argument("-t", "--topgenes", type="integer", default=200,
-    help="Number of genes to pick as relevant from a component")
+parser$add_argument("-t", "--toppairs", type="integer", default=200,
+    help="Number of gene pairs to pick as relevant from a component")
 
 parser$add_argument("-b", "--bootstrap", type="double", default=0.66,
     help="Fraction of genes to bootstrap")
@@ -26,8 +26,8 @@ fraction_bootstrap <- args$bootstrap
 # fraction_bootstrap <- 0.66
 fraction_variation <- args$fraction
 # fraction_variation <- 0.5
-top_genes <- args$topgenes
-# top_genes <- 200
+top_genes <- ceiling(1/2 * (sqrt(8*args$toppairs + 1) + 1)) # this uses nC2 to pick the top set to create ~number of pairs
+# top_genes <- ceiling(1/2 * (sqrt(8*200 + 1) + 1))
 
 
 genes <- file.path("results", "gene_data_vs_cell_type.tsv") %>%
@@ -52,7 +52,7 @@ gene_data %>%
   selected_genes_idx
 
 gene_data %>%
-  select(selected_genes) ->
+  select(selected_genes_idx) ->
   gene_selected
 
 gene_selected %>% glimpse
@@ -65,7 +65,6 @@ gene_selected %>% glimpse
 # expression_data %>% glimpse
 
 pca_results <- prcomp(gene_selected, scale = TRUE)
-
 pca_results %>% glimpse
 
 pca_results %>%
@@ -75,39 +74,14 @@ pca_results %>%
   cumsum %>% # Cumulative Proportion of Variance Explained
   discard(~ . > fraction_variation) %>%
   length ->
-  pca_relevant_components
+  pca_relevant_components_length
+
+pca_results$x[, 1:pca_relevant_components_length] %>%
+  as.data.frame %>%
+  cbind(gene_labels) %>%
+  write_tsv(path_target)
 
 
-pca_results$sdev^2 %>% glimpse
-prvar <- pca_results$sdev^2
-# prvar
-pve <- prvar/sum(prvar)
-pve %>% glimpse
-cumsum(pve)
-plot(cumsum(pve), xlab="Principal Component ", ylab=" Cumulative Proportion of Variance Explained ", ylim=c(0,1), type='b')
-
-
-pca_results$x[, 1:4] %>% as.data.frame %>% slice(1:5)
-
-
-pca_results$rotation %>%
-  glimpse
-
-pca_results %>%
-  get('rotation', .) %>%
-  abs %>%
-  (function(aload) { sweep(aload, 2, colSums(aload), "/") }) %>% # proportional contribution to the each principal component
-  (function(m) { m[,1:pca_relevant_components] }) %>%
-  (function(m) { m[,3] }) %>%
-  sort(decreasing = TRUE) %>%
-  head(5) %>%
-  names
-  # as.data.frame %>%
-  # select(1:pca_relevant_components) %>%
-  # glimpse
-
-
-1:50 %>% head(4)
 
 pca_results %>%
   get('rotation', .) %>%
@@ -116,7 +90,7 @@ pca_results %>%
   (function(m) { # Pick top top_genes genes from each
     m %>%
       colnames %>%
-      head(pca_relevant_components) ->
+      head(pca_relevant_components_length) ->
       cols
     map(cols, function(c) {
       m[,c] %>%
@@ -127,11 +101,40 @@ pca_results %>%
     }) %>%
     reduce(cbind) %>%
     `colnames<-`(cols)
-  }) %>%
+  }) ->
+  res
+
+res %>%
   glimpse
   # as.data.frame %>%
-  # select(1:pca_relevant_components) %>%
+  # select(1:pca_relevant_components_length) %>%
   # glimpse
+
+
+pair_ <- function(v) {
+  if (length(v) < 2) {
+    return(list())
+  }
+  v %>% head(1) -> h
+  v %>% tail(-1) %>% sort -> t
+  h %>%
+    rep(length(t)) %>%
+    list(., t) %>%
+    transpose %>%
+    map(unlist) %>%
+    c(pair_(t))
+}
+
+pair <- function(v) {
+  v %>%
+    as.character %>%
+    pair_
+}
+
+# res %>%
+#   get("PC1", .) %>%
+#   pair %>%
+#   as.data.frame
 
 
 sweep(aload, 2, colSums(aload), "/")
