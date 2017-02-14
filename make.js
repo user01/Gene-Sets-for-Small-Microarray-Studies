@@ -17,7 +17,7 @@ const {
 const dimensionReductionData = readJson('data_dimensionreduction.json');
 const clusterData = readJson('data_cluster.json');
 // Change this parameter to adjust the maximum number of cores
-const concurrency = 6;
+const concurrency = 7;
 
 
 const dimensionReductionTasks = taskify('dimreduction')(dimensionReductionData);
