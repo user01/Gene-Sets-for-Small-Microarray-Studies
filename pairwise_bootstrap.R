@@ -59,7 +59,7 @@ genes <- input_path %>%
   ))
 
 genes %>% select(-GSM_ID, -Cell_Type, -General_Cell_Type) -> gene_data
-genes %>% select( GSM_ID,  Cell_Type,  General_Cell_Type) -> gene_labels
+genes %>% select(Cell_Type, General_Cell_Type) -> gene_labels
 
 
 set.seed(random_seed)
