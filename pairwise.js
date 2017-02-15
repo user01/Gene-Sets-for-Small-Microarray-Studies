@@ -42,6 +42,23 @@ const classify_components = (idx, path_components) => {
     .then(x => [path_pred_rf]);
 }
 
+const score_predictions = (idx, pred_paths, pairs_path) => {
+  const path_general = pairwise(`score_general_${idx}.tsv`);
+  const path_specific = pairwise(`score_specific_${idx}.tsv`);
+  const args = [
+    'pairwise_score.R',
+    '--inputpairs',
+    pairs_path,
+    '--inputpredictions',
+    pred_paths.join(','),
+    '--outputgeneral',
+    path_general,
+    '--outputspecific',
+    path_specific
+  ];
+  return make(path_general, 'Rscript', args);
+}
+
 const bootstrap = (idx) => {
   const path_outputpairs = pairwise(`pairs_${idx}.tsv`);
   const path_outputcomponents = pairwise(`components_${idx}.tsv`);
@@ -58,9 +75,11 @@ const bootstrap = (idx) => {
   ];
 
   return make(path_outputpairs, 'Rscript', args)
-    .then(x => info(`Boostrap Finished for ${x}`))
+    .then(x => info(`Boostrap Started for ${x}`))
     .then(x => classify_components(idx, path_outputcomponents))
-    .then(path_preds => info(`Prediction files ${path_preds.join('--')}`));
+    .then(path_preds => score_predictions(idx,path_preds,path_outputpairs))
+    .then(x => info(`Boostrap Finished for ${x}`))
+    // .then(path_preds => info(`Prediction files ${path_preds.join('--')}`));
 }
 
 const bootstrapAll = () => Promise.map(R.range(0,2), bootstrap, {concurrency});
