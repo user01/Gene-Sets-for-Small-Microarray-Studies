@@ -63,7 +63,7 @@ const bootstrap = (idx) => {
     .then(path_preds => info(`Prediction files ${path_preds.join('--')}`));
 }
 
-const bootstrapAll = () => Promise.map(R.range(0,2), bootstrap);
+const bootstrapAll = () => Promise.map(R.range(0,2), bootstrap, {concurrency});
 
 load_data()
   .then(x => info('Data Preprocessing Finished'))
