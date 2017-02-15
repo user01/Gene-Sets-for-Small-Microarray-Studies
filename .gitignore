@@ -36,6 +36,8 @@ vignettes/*.pdf
 # Created data files
 results/*
 !results/.gitkeep
+pairwise/*
+!pairwise/.gitkeep
 plots/*
 !plots/.gitkeep
 
