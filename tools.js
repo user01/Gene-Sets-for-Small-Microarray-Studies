@@ -129,7 +129,7 @@ const cmd = (bin, args) => {
 };
 
 
-const make = (target, bin, args, noteRun, noteMs) => {
+const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}) => {
   const start = moment();
   const logTarget = () => {
     console.log(` ${pad(140, chalk.yellow(target), ' ')}`);
@@ -168,6 +168,7 @@ module.exports = {
   cmd,
   make,
   res: (filename) => path.join('results', filename),
+  pairwise: (filename) => path.join('pairwise', filename),
   data: (filename) => path.join('data', filename),
   info: i => console.log(pad(140, chalk.blue.bold(i), ' '))
 };

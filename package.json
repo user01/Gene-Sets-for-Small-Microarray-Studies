@@ -4,6 +4,7 @@
   "description": "",
   "main": "make.js",
   "scripts": {
+    "pairwise": "node pairwise.js",
     "start": "node make.js"
   },
   "repository": {
