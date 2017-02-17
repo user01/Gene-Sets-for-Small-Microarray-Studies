@@ -167,6 +167,7 @@ module.exports = {
   fsAccess,
   cmd,
   make,
+  z: (s) => pad(5, s+'', '0'),
   res: (filename) => path.join('results', filename),
   pairwise: (filename) => path.join('pairwise', filename),
   data: (filename) => path.join('data', filename),

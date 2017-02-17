@@ -12,6 +12,7 @@ const {
   taskToName,
   taskify,
   make,
+  z,
   res,
   pairwise,
   info
@@ -28,7 +29,7 @@ const load_data = () => {
 }
 
 const classify_components = (idx, path_components) => {
-  const path_pred_rf = pairwise(`predict_${idx}_randomforest.tsv`);
+  const path_pred_rf = pairwise(`predict_${z(idx)}_randomforest.tsv`);
   const args_rf = [
     'classify_randomforest.R',
     '--seed',
@@ -43,8 +44,8 @@ const classify_components = (idx, path_components) => {
 }
 
 const score_predictions = (idx, pred_paths, pairs_path) => {
-  const path_general = pairwise(`score_general_${idx}.tsv`);
-  const path_specific = pairwise(`score_specific_${idx}.tsv`);
+  const path_general = pairwise(`score_general_${z(idx)}.tsv`);
+  const path_specific = pairwise(`score_specific_${z(idx)}.tsv`);
   const args = [
     'pairwise_score.R',
     '--inputpairs',
@@ -60,8 +61,8 @@ const score_predictions = (idx, pred_paths, pairs_path) => {
 }
 
 const bootstrap = (idx) => {
-  const path_outputpairs = pairwise(`pairs_${idx}.tsv`);
-  const path_outputcomponents = pairwise(`components_${idx}.tsv`);
+  const path_outputpairs = pairwise(`pairs_${z(idx)}.tsv`);
+  const path_outputcomponents = pairwise(`components_${z(idx)}.tsv`);
   const args = [
     'pairwise_bootstrap.R',
     '--input',
@@ -75,10 +76,10 @@ const bootstrap = (idx) => {
   ];
 
   return make(path_outputpairs, 'Rscript', args)
-    .then(x => info(`Boostrap Started for ${x}`))
+    .then(x => info(`Boostrap Started for ${idx}`))
     .then(x => classify_components(idx, path_outputcomponents))
     .then(path_preds => score_predictions(idx,path_preds,path_outputpairs))
-    .then(x => info(`Boostrap Finished for ${x}`))
+    .then(x => info(`Boostrap Finished for ${idx}`))
     // .then(path_preds => info(`Prediction files ${path_preds.join('--')}`));
 }
 
