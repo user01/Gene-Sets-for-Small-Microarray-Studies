@@ -72,8 +72,6 @@ scores_grouped %>%
   unique ->
   cell_types
 
-print("Scores collected")
-
 score_threshold <- function(scores) {
   summary(scores)[5] %>% unname
 }
