@@ -1,4 +1,5 @@
 const concurrency = 7;
+const bootstraps = 100;
 
 // Import Libraries
 const R = require('ramda'),
@@ -83,8 +84,29 @@ const bootstrap = (idx) => {
     // .then(path_preds => info(`Prediction files ${path_preds.join('--')}`));
 }
 
-const bootstrapAll = () => Promise.map(R.range(0,2), bootstrap, {concurrency});
+const bootstrapAll = () => Promise.map(R.range(0,bootstraps), bootstrap, {concurrency});
+
+
+const buildSets = (type) => {
+  const path_output = pairwise(`sets_${type}.gmt`);
+  const pattern = `score_${type}_\\\\d+.tsv`;
+  const args = [
+    'pairwise_buildsets.R',
+    '--scorespath',
+    'pairwise',
+    '--scorespattern',
+    pattern,
+    '--output',
+    path_output
+  ];
+  return make(path_output, 'Rscript', args);
+}
+
+const buildSetsAll = () => Promise.map(['general','specific'], buildSets, {concurrency});
 
 load_data()
   .then(x => info('Data Preprocessing Finished'))
   .then(bootstrapAll)
+  .then(x => info('Bootstrap Finished'))
+  .then(buildSetsAll)
+  .then(x => info('All Finished'));
