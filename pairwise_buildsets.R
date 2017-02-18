@@ -29,12 +29,6 @@ scorespattern <- args$scorespattern
 output <- args$output
 # output <- file.path("pairwise", "set_results.gmt")
 
-scorespath %>% glimpse
-scorespattern %>% glimpse
-output %>% glimpse
-
-
-
 
 scorespath %>%
   list.files(recursive=TRUE, pattern=scorespattern) %>%
@@ -52,16 +46,12 @@ scorespath %>%
   reduce(rbind) ->
   scores
 
-print("Scores Pulled")
-scores %>% glimpse
 
 scores %>%
   colnames %>%
   keep(~ str_detect(., "Cell_Type")) ->
   cell_type
 
-print("cell type")
-print(cell_type)
 
 scores %>%
   group_by_("low", "high", cell_type) %>%
