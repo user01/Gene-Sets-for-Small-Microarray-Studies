@@ -101,6 +101,7 @@ Gautier_Immgen_Sample_Metadata %>%
   unique %>%
   map(function(general_cell_type) {
     # compute score for this general cell type based on predictions
+    # TODO: Currently makes use of the mean of prediction scores
     general_cell_type %>%
       scores_general %>%
       mean -> type_score
@@ -120,6 +121,7 @@ Gautier_Immgen_Sample_Metadata %>%
   unique %>%
   map(function(specific_cell_type) {
     # compute score for this general cell type based on predictions
+    # TODO: Currently makes use of the mean of prediction scores
     specific_cell_type %>%
       scores_general %>%
       mean -> type_score

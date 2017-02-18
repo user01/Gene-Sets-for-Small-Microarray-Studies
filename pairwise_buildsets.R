@@ -72,6 +72,7 @@ scores_grouped %>%
   unique ->
   cell_types
 
+# TODO: Update threshold for score, currently 3rd Quartile
 score_threshold <- function(scores) {
   summary(scores)[5] %>% unname
 }
