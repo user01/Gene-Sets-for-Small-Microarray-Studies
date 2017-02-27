@@ -47,22 +47,20 @@ cell_type <- args$type
 input_path <- args$input
 # input_path <- file.path("results", "gene_data_vs_cell_type.tsv")
 output_path <- args$output
-# output_path <- file.path("results", "results_components.tsv")
-output_path <- args$outputscores
-# output_path <- file.path("results", "results_pairs.tsv")
+# output_path <- file.path("results", "results.tsv")
 
 
 
-genes <- input_path %>%
-  read_tsv(col_types=cols(
-    .default = col_double(),
-    GSM_ID = col_character(),
-    Cell_Type = col_character(),
-    General_Cell_Type = col_character()
-  ))
-
-genes %>% select(-GSM_ID, -Cell_Type, -General_Cell_Type) -> gene_data
-genes %>% select(Cell_Type, General_Cell_Type) -> gene_labels
+# genes <- input_path %>%
+#   read_tsv(col_types=cols(
+#     .default = col_double(),
+#     GSM_ID = col_character(),
+#     Cell_Type = col_character(),
+#     General_Cell_Type = col_character()
+#   ))
+#
+# genes %>% select(-GSM_ID, -Cell_Type, -General_Cell_Type) -> gene_data
+# genes %>% select(Cell_Type, General_Cell_Type) -> gene_labels
 
 set.seed(random_seed)
 

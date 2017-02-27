@@ -59,7 +59,7 @@ const bootstrap = (task) => {
   }_${
     task.type
   }_${
-    task.name.replace(' ','.')
+    task.name.replace(/\s+/g, '.')
   }.tsv`);
   const args_lda = [
     'score_lda.R',

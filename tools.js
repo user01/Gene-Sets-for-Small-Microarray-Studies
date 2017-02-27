@@ -8,6 +8,7 @@ const path = require('path'),
   Promise = require('bluebird'),
   spawn = require('child_process').spawn;
 
+const lineWidth = 120;
 
 const readJson = R.pipe(
   fs.readFileSync,
@@ -159,10 +160,7 @@ const cmd = (bin, args) => {
       if (code == 0) {
         resolve(`${bin} ${args.join(' ')}`)
       } else {
-        console.log(`${chalk.red.bold(' !!! Error !!!')} in ${args.join(' ')}`);
-        console.log(stdout);
-        console.log(stderror);
-        reject(stdout);
+        reject(`${stdout}\n\n${stderror}`);
       }
     });
   });
@@ -171,29 +169,34 @@ const cmd = (bin, args) => {
 
 const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}) => {
   const start = moment();
-  const logTarget = () => {
-    console.log(` ${pad(140, chalk.yellow(target), ' ')}`);
-    console.log(` ${pad(140, chalk.white(args.join(' ')), ' ')}`);
+  const elapsed = () => {
+    const ms = moment().diff(start);
+    noteMs(ms);
+    if (ms < 50) return;
+    return Math.round(ms / 1000);
+  }
+  const logTarget = (color, response, info, err = false) => {
+    console.log(` ${color('┌-----')}${pad(` ${color(response)} ${info} `, lineWidth, color('-'))}`);
+    console.log(` ${color('|')} ${chalk.yellow(target)}`);
+    console.log(` ${color('|')} ${chalk.white(args.join(' '))}`);
+    if (err) {
+      console.log('ERROR')
+      console.log(err);
+    }
+    console.log(` ${color(`└${pad('', lineWidth - 5, '-')}`)}`);
   }
   return fsAccess(target)
     .catch(x => {
       noteRun();
-      console.log(` ${pad(80, chalk.blue('WORKING'), ' ')}`);
-      logTarget();
+      logTarget(chalk.blue, 'WORKING', '');
       return cmd(bin, args);
     })
     .then(x => {
-      const ms = moment().diff(start);
-      noteMs(ms);
-      if (ms < 50) return;
-      const seconds = Math.round(ms / 1000);
-      console.log(` ${pad(80, `${seconds} seconds  ` + chalk.green('COMPLETED'), ' ')}`);
-      logTarget();
+      logTarget(chalk.green, 'COMPLETED', `${elapsed()} seconds`);
     })
     .catch(err => {
-      console.log(` ${pad(19, chalk.red('FAILED'), ' ')}`);
-      console.error(err);
-      logTarget();
+      console.log(err);
+      logTarget(chalk.red, 'ERROR', `${elapsed()} seconds`, err);
     });
 };
 
@@ -215,7 +218,7 @@ module.exports = {
   data: (filename) => path.join('data', filename),
   info: i => {
     return (innerValue) => {
-      console.log(pad(140, chalk.blue.bold(i), ' '))
+      console.log(pad(lineWidth, chalk.blue.bold(i), ' '))
       return innerValue;
     }
   }
