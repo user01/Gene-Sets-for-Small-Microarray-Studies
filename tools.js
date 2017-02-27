@@ -167,7 +167,7 @@ const cmd = (bin, args) => {
 };
 
 
-const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}) => {
+const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message = '') => {
   const start = moment();
   const elapsed = () => {
     const ms = moment().diff(start);
@@ -175,8 +175,12 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}) => {
     if (ms < 50) return;
     return Math.round(ms / 1000);
   }
-  const logTarget = (color, response, info, err = false) => {
-    console.log(` ${color('┌-----')}${pad(` ${color(response)} ${info} `, lineWidth, color('-'))}`);
+  const logTarget = (color, response='', info='', err = false) => {
+    const header = R.pipe(
+      R.filter(s => s.length > 0),
+      R.join(' ')
+    )([color(response), chalk.gray(message), info]);
+    console.log(` ${color('┌-----')}${pad(` ${header} `, lineWidth, color('-'))}`);
     console.log(` ${color('|')} ${chalk.yellow(target)}`);
     console.log(` ${color('|')} ${chalk.white(args.join(' '))}`);
     if (err) {

@@ -43,7 +43,7 @@ input_path <- args$input
 cell_name <- args$name
 # cell_name <- "NK cell"
 cell_type <- args$type
-# cell_name <- "general"
+# cell_type <- "general"
 input_path <- args$input
 # input_path <- file.path("results", "gene_data_vs_cell_type.tsv")
 output_path <- args$output
@@ -66,7 +66,13 @@ set.seed(random_seed)
 
 # TODO: Fill in LDA code
 
-place_holder <- data.frame(low=c('a','b','c'),high=c('b','c','d'),frequency=1:3,score=1:3)
+place_holder <- data.frame(
+  low=c('a','b','c'),
+  high=c('b','c','d'),
+  cell_name = cell_name,
+  cell_type = cell_type,
+  frequency=1:3,
+  score=1:3)
 
 place_holder %>%
   write_tsv(output_path)
