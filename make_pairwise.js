@@ -10,16 +10,11 @@ const R = require('ramda'),
 
 
 const {
-  readJson,
-  readTsv,
-  taskToName,
-  taskify,
   make,
   z,
   res,
   data,
   readTypes,
-  pairwise,
   info
 } = require('./tools.js');
 

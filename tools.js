@@ -214,8 +214,6 @@ module.exports = {
   z: (s) => pad(5, s+'', '0'),
   res: (filename) => path.join('results', filename),
   data: (filename) => path.join('data', filename),
-  pairwise: (filename) => path.join('pairwise', filename),
-  data: (filename) => path.join('data', filename),
   info: i => {
     return (innerValue) => {
       console.log(pad(lineWidth, chalk.blue.bold(i), ' '))
