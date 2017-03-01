@@ -38,39 +38,98 @@ random_seed <- args$seed
 fraction_bootstrap <- args$bootstrap
 # fraction_bootstrap <- 0.66
 top_genes <- ceiling(1/2 * (sqrt(8*args$pairs + 1) + 1)) # this uses nC2 to pick the top set to create ~number of pairs
-# top_genes <- ceiling(1/2 * (sqrt(8*2000 + 1) + 1))
+# top_genes <- ceiling(1/2 * (sqrt(8*200 + 1) + 1))
 input_path <- args$input
 # input_path <- file.path("results", "gene_data_vs_cell_type.tsv")
 cell_name <- args$name
 # cell_name <- "NK cell"
 cell_type <- args$type
-# cell_type <- "general"
+# cell_type <- "General_Cell_Type"
 input_path <- args$input
 # input_path <- file.path("results", "gene_data_vs_cell_type.tsv")
 output_path <- args$output
 # output_path <- file.path("results", "results.tsv")
 
-if (cell_type == "general") {
-  label_col <- "General_Cell_Type"
-} else {
-  label_col <- "Cell_Type"
-}
-
-genes <- input_path %>%
+# Read base data file and transform for type
+input_path %>%
   read_tsv(col_types=cols(
     .default = col_double(),
     GSM_ID = col_character(),
     Cell_Type = col_character(),
     General_Cell_Type = col_character()
-  ))
+  )) %>%
+  mutate_(.dots = setNames(cell_type, "type_truth")) %>%
+  select(-GSM_ID, -Cell_Type, -General_Cell_Type) ->
+  genes
 
-genes %>% select(-GSM_ID, -Cell_Type, -General_Cell_Type) -> gene_data
-genes %>% select(Cell_Type, General_Cell_Type) -> gene_labels
+genes %>% select(-type_truth) -> gene_data
+genes %>%
+  select(type_truth) %>%
+  unlist %>%
+  unname %>%
+  map_chr(~ if (. != cell_name) { "other" } else { cell_name }) ->
+  gene_labels
 
 set.seed(random_seed)
 
-# bootstrap genes, generate gene indexes
-gene_data_bootstraped <- gene_data[sample(1: floor(ncol(gene_data) * fraction_bootstrap))]
+# Bootstrap genes, generate gene indexes
+gene_data %>%
+  ncol %>%
+  `*`(fraction_bootstrap) %>%
+  floor ->
+  genes_count
+gene_data %>%
+  ncol %>%
+  sample(replace = TRUE) %>%
+  head(genes_count) %>%
+  select(gene_data, .) %>%
+  cbind(data.frame(type_truth = gene_labels)) ->
+  genes_bootstrapped
+
+# Perform downsampling to match given set
+genes_bootstrapped %>%
+  filter(type_truth == cell_name) ->
+  genes_bootstrapped_truth
+genes_bootstrapped %>%
+  filter(gene_labels != cell_name) %>%
+  head(nrow(genes_bootstrapped_truth)) %>%
+  rbind(genes_bootstrapped_truth) ->
+  genes_bootstrapped_downsampled
+
+# Seperate out for LDA
+genes_bootstrapped_downsampled %>%
+  select(-type_truth) ->
+  genes_bootstrapped_downsampled_values
+genes_bootstrapped_downsampled %>%
+  select(type_truth) %>%
+  unlist %>%
+  unname %>%
+  as.character ->
+  genes_bootstrapped_downsampled_labels
+
+# Perform fit for components
+lda_model <- lda(genes_bootstrapped_downsampled_values, genes_bootstrapped_downsampled_labels, CV = FALSE)
+
+# Select top loading genes from components
+lda_model %>%
+  get("scaling", .) %>%
+  (function(m) {
+    data.frame(
+      loading = m %>% unlist %>% unname,
+      gene = m %@% "dimnames" %>% nth(1)
+    )
+  }) %>%
+  mutate(
+    loading = abs(loading),
+    gene = as.character(gene)
+  ) %>%
+  arrange(-loading) %>%
+  head(top_genes) %>%
+  get("gene", .) %>%
+  unlist ->
+  top_gene_names
+
+
 
 # balance the number of control vs. target sample
 target_data <- gene_data_bootstraped[gene_labels[[label_col]] == cell_name ,]
