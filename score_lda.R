@@ -1,6 +1,7 @@
 suppressPackageStartupMessages({
   library(MASS)
   library(readr)
+  library(stringr)
   library(dplyr)
   library(purrr)
   library(argparse)
@@ -41,8 +42,8 @@ top_genes <- ceiling(1/2 * (sqrt(8*args$pairs + 1) + 1)) # this uses nC2 to pick
 # top_genes <- ceiling(1/2 * (sqrt(8*200 + 1) + 1))
 input_path <- args$input
 # input_path <- file.path("results", "gene_data_vs_cell_type.tsv")
-cell_name <- args$name
-# cell_name <- "NK cell"
+cell_name <- args$name %>% str_replace_all('"','')
+# cell_name <- '"Monocyte"' %>% str_replace_all('"','')
 cell_type <- args$type
 # cell_type <- "General_Cell_Type"
 input_path <- args$input
@@ -98,7 +99,9 @@ genes_bootstrapped %>%
 
 # LDA fit for components
 lda_fit <- function(df) {
-  lda(df %>% select(-type_truth),
+  lda(df %>%
+        select(-type_truth) %>%
+        as.matrix,
       df %>%
         select(type_truth) %>%
         unlist %>%
