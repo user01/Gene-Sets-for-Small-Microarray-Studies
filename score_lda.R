@@ -127,9 +127,8 @@ genes_bootstrapped_downsampled %>%
   unlist ->
   top_gene_names
 
-
+# Perform Leave One Out
 data_range <- 1:nrow(genes_bootstrapped_downsampled)
-
 data_range %>%
   map(function(idx){
     # Create data sets
@@ -161,41 +160,40 @@ data_range %>%
   as.data.frame ->
   data_results
 
-# balance the number of control vs. target sample
-target_data <- gene_data_bootstraped[gene_labels[[label_col]] == cell_name ,]
+# Score is simply accuracy of the LOO predictions between the balanced classes
+#  of the type and other
+data_results %>%
+  mutate(correct = type_truth == type_predicted) %>%
+  select(correct) %>%
+  unlist %>%
+  sum %>%
+  `/`(nrow(data_results)) ->
+  score
 
-control_data <- gene_data_bootstraped[gene_labels[[label_col]] != cell_name ,] %>%
-  sample_n(nrow(target_data))
+# Pairs a vector into low/high pairs, with a frequency of one
+pair_ <- function(v) {
+  if (length(v) < 2) {
+    return(data.frame())
+  }
+  v %>% head(1) -> h
+  v %>% tail(-1) -> t
+  h %>%
+    rep(length(t)) %>%
+    data.frame(low=., high=t, frequency=as.integer(1)) %>%
+    rbind(pair_(t))
+}
+pair <- function(v) {
+  v %>%
+    as.character %>%
+    sort %>%
+    pair_
+}
 
-training_data <- rbind(target_data, control_data)
-training_labels <- c(rep(cell_name, nrow(target_data)), rep("others", nrow(target_data)))
-
-# train LDA model
-lda.model <- lda(training_data, training_labels,CV=FALSE)
-
-# LDA prediction score
-gene_data_bootstraped %>%
-  predict(lda.model, newdata = .) -> prediction
-
-prediction_result <- prediction$class
-
-expected_result <- gene_labels[[label_col]]
-expected_result[expected_result != cell_name] = "others"
-
-accuracy <- sum(prediction_result == expected_result)/length(expected_result)
-
-# accuracy
-# TODO: sort LDA loadings/scalings, combine into pairs score with lda.predict and freq = 1
-
-# NOTE: loadings/scaling are stored in lda.model$scaling
-
-place_holder <- data.frame(
-  low=c('a','b','c'),
-  high=c('b','c','d'),
-  cell_name = cell_name,
-  cell_type = cell_type,
-  frequency=1:3,
-  score=1:3)
-
-place_holder %>%
+top_gene_names %>%
+  pair %>%
+  mutate(
+    score = score,
+    cell_name = cell_name,
+    cell_type = cell_type
+  ) %>%
   write_tsv(output_path)
