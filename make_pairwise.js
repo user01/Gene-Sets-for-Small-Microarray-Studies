@@ -64,12 +64,12 @@ const celltypes_to_tasks = (celltypes) => {
 
 
 const bootstrap = (task) => {
-  const path_output = res(`score_${
+  const path_output = res(`score.${
     z(task.bootstrap)
-  }_${
+  }.${
     task.type
-  }_${
-    task.name.replace(/\s+/g, '.')
+  }.${
+    task.name.replace(/\s+/g, '_')
   }.tsv`);
   const args_lda = [
     'score_lda.R',
