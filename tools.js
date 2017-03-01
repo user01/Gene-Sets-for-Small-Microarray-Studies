@@ -172,7 +172,7 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
   const elapsed = () => {
     const ms = moment().diff(start);
     noteMs(ms);
-    if (ms < 50) return 0;
+    if (ms < 50) return '';
     return Math.round(ms / 1000);
   }
   const logTarget = (color, response='', info='', err = false) => {
@@ -196,7 +196,9 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
       return cmd(bin, args);
     })
     .then(x => {
-      logTarget(chalk.green, 'COMPLETED', `${elapsed()} seconds`);
+      if (elapsed() != ''){
+        logTarget(chalk.green, 'COMPLETED', `${elapsed()} seconds`);
+      }
     })
     .catch(err => {
       console.log(err);
