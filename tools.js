@@ -42,15 +42,15 @@ const readTypes = (typesFile) => {
   return readTsv(typesFile)
     .then(types => {
       const elms = R.tail(types);
-      const general = R.pipe(
+      const General_Cell_Type = R.pipe(
         R.map(R.nth(2)),
         R.uniq
       )(elms);
-      const specific = R.pipe(
+      const Cell_Type = R.pipe(
         R.map(R.nth(1)),
         R.uniq
       )(elms);
-      return { general, specific };
+      return { General_Cell_Type, Cell_Type };
     });
 };
 
@@ -172,7 +172,7 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
   const elapsed = () => {
     const ms = moment().diff(start);
     noteMs(ms);
-    if (ms < 50) return;
+    if (ms < 50) return 0;
     return Math.round(ms / 1000);
   }
   const logTarget = (color, response='', info='', err = false) => {

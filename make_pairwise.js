@@ -34,7 +34,7 @@ var allMs = 0;
 const start = moment();
 const noteMs = (ms) => {
   allMs += ms;
-}
+};
 
 // Pre-process main data
 const load_data = () => {
@@ -43,9 +43,10 @@ const load_data = () => {
     readTypes(data('Gautier_Immgen_Sample_Metadata.tsv'))
   ], {concurrency})
   .then(R.nth(1));
-}
+};
 
 const celltypes_to_tasks = (celltypes) => {
+  // console.log(celltypes);
   const types_to_tasks = (type) => {
     return R.pipe(
       R.prop(type),
@@ -53,10 +54,11 @@ const celltypes_to_tasks = (celltypes) => {
       R.map(([bootstrap, name]) => { return {type, name, bootstrap}; })
     )(celltypes);
   };
-  return R.concat(
-    types_to_tasks('general'),
-    types_to_tasks('specific')
+  const tasks = R.concat(
+    types_to_tasks('General_Cell_Type'),
+    types_to_tasks('Cell_Type')
   );
+  return Promise.resolve(tasks);
 };
 
 
@@ -90,21 +92,42 @@ const bootstrap = (task) => {
       noteMs,
       `Task: ${task_done}/${task_count} ${Math.floor(100 * task_done/task_count)}%`)
     .then(x => { task_done++ })
-    .then(x => path_output);
+    .then(x => task);
 }
 
 const bootstrapAll = (tasks) => Promise.map(tasks, bootstrap, {concurrency});
 
+
+const buildSets = (type) => {
+  const path_output = pairwise(`sets_${type}.gmt`);
+  const pattern = `score_${type}_\\\\d+.tsv`;
+  const args = [
+    'pairwise_buildsets.R',
+    '--scorespath',
+    'pairwise',
+    '--scorespattern',
+    pattern,
+    '--output',
+    path_output
+  ];
+  return make(path_output, 'Rscript', args);
+}
+const buildSetsAll = () => Promise.map(['General_Cell_Type','Cell_Type'], buildSets, {concurrency});
+
+
+
 load_data()
-  .then(celltypes_to_tasks)
   .then(info('Data Loaded'))
-  .then(tasks => {
-    task_count = tasks.length;
-    return tasks;
+  .then(cell_types => {
+    return celltypes_to_tasks(cell_types)
+      .then(tasks => {
+        task_count = tasks.length;
+        return tasks;
+      })
+      .then(bootstrapAll)
+      .then(info('Bootstrap Complete'))
+      .then(x => scoreAll(cell_types))
   })
-  .then(bootstrapAll)
-  .then(info('Bootstrap Complete'))
-  // .then(score)
   .then(x => {
     const wallTime = moment.duration(moment().diff(start))
     const procTime = moment.duration(allMs);
