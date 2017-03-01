@@ -96,22 +96,20 @@ genes_bootstrapped %>%
   rbind(genes_bootstrapped_truth) ->
   genes_bootstrapped_downsampled
 
-# Seperate out for LDA
-genes_bootstrapped_downsampled %>%
-  select(-type_truth) ->
-  genes_bootstrapped_downsampled_values
-genes_bootstrapped_downsampled %>%
-  select(type_truth) %>%
-  unlist %>%
-  unname %>%
-  as.character ->
-  genes_bootstrapped_downsampled_labels
-
-# Perform fit for components
-lda_model <- lda(genes_bootstrapped_downsampled_values, genes_bootstrapped_downsampled_labels, CV = FALSE)
+# LDA fit for components
+lda_fit <- function(df) {
+  lda(df %>% select(-type_truth),
+      df %>%
+        select(type_truth) %>%
+        unlist %>%
+        unname %>%
+        as.character,
+      CV = FALSE)
+}
 
 # Select top loading genes from components
-lda_model %>%
+genes_bootstrapped_downsampled %>%
+  lda_fit %>%
   get("scaling", .) %>%
   (function(m) {
     data.frame(
@@ -130,6 +128,38 @@ lda_model %>%
   top_gene_names
 
 
+data_range <- 1:nrow(genes_bootstrapped_downsampled)
+
+data_range %>%
+  map(function(idx){
+    # Create data sets
+    data_train <- genes_bootstrapped_downsampled %>% filter(idx != data_range)
+    data_test <- genes_bootstrapped_downsampled %>% filter(idx == data_range)
+
+    lda_model <- lda_fit(data_train)
+
+    data_test %>%
+      select(type_truth) %>%
+      unlist %>%
+      unname %>%
+      as.character ->
+      type_truth
+
+    data_test %>%
+      select(-type_truth) %>%
+      predict(lda_model, newdata = .) %>%
+      get("class", .) ->
+      type_predicted
+
+    data.frame(
+      idx = idx,
+      type_truth = type_truth,
+      type_predicted = type_predicted
+    )
+  }) %>%
+  reduce(rbind) %>%
+  as.data.frame ->
+  data_results
 
 # balance the number of control vs. target sample
 target_data <- gene_data_bootstraped[gene_labels[[label_col]] == cell_name ,]
