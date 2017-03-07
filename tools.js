@@ -180,14 +180,15 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
       R.filter(s => s.length > 0),
       R.join(' ')
     )([color(response), chalk.gray(message), info]);
-    console.log(` ${color('┌-----')}${pad(` ${header} `, lineWidth, color('-'))}`);
-    console.log(` ${color('|')} ${chalk.yellow(target)}`);
-    console.log(` ${color('|')} ${chalk.white(args.join(' '))}`);
+    // TODO: Note data and time of message
+    console.log(` ${color('┌─────')}${pad(` ${header} `, lineWidth, color('-'))}`);
+    console.log(` ${color('│')} ${chalk.yellow(target)}`);
+    console.log(` ${color('│')} ${chalk.white(args.join(' '))}`);
     if (err) {
       console.log('ERROR')
       console.log(err);
     }
-    console.log(` ${color(`└${pad('', lineWidth - 5, '-')}`)}`);
+    console.log(` ${color(`└${pad('', lineWidth - 5, '─')}`)}`);
   }
   return fsAccess(target)
     .catch(x => {
