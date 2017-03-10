@@ -4,8 +4,11 @@ suppressPackageStartupMessages({
   library(stringr)
   library(dplyr)
   library(purrr)
+  library(lubridate)
   library(argparse)
 })
+
+timestamp_started <- now()
 
 parser <- ArgumentParser()
 parser$add_argument("-s", "--seed", type="integer", default=451,
@@ -32,6 +35,10 @@ parser$add_argument("-o", "--output", type="character",
     default=file.path("results", "results_pairs.tsv"),
     help="Path to output pair/scores data")
 
+parser$add_argument("-f", "--feedback", type="character",
+    default=file.path("results", "results_feedback.tsv"),
+    help="Path to output feedback on run. Errors, time, etc")
+
 args <- parser$parse_args()
 
 random_seed <- args$seed
@@ -50,6 +57,30 @@ input_path <- args$input
 # input_path <- file.path("results", "gene_data_vs_cell_type.tsv")
 output_path <- args$output
 # output_path <- file.path("results", "results.tsv")
+feedback_path <- args$feedback
+# feedback_path <- file.path("results", "feedback.tsv")
+
+
+
+# function to note statistics on done
+# this will stop the script
+note_complete <- function(success, message) {
+  data.frame(
+      start = timestamp_started,
+      end = now(),
+      cell_name = cell_name,
+      cell_type = cell_type,
+      random_seed = random_seed,
+      fraction_bootstrap = fraction_bootstrap,
+      top_genes = top_genes,
+      input_path = input_path,
+      output_path = output_path,
+      success = success,
+      message = message
+    ) %>%
+    write_tsv(feedback_path)
+  quit()
+}
 
 # Read base data file and transform for type
 input_path %>%
@@ -93,21 +124,27 @@ genes_bootstrapped %>%
   genes_bootstrapped_truth
 genes_bootstrapped %>%
   filter(gene_labels != cell_name) %>%
-  head(nrow(genes_bootstrapped_truth)) %>%
+  sample_n(nrow(genes_bootstrapped_truth)) %>%
   rbind(genes_bootstrapped_truth) ->
   genes_bootstrapped_downsampled
 
 # LDA fit for components
 lda_fit <- function(df) {
-  lda(df %>%
-        select(-type_truth) %>%
-        as.matrix,
-      df %>%
-        select(type_truth) %>%
-        unlist %>%
-        unname %>%
-        as.character,
-      CV = FALSE)
+  tryCatch({
+    results <- lda(df %>%
+                     select(-type_truth) %>%
+                     as.matrix,
+                   df %>%
+                     select(type_truth) %>%
+                     unlist %>%
+                     unname %>%
+                     as.character,
+                   CV = FALSE)
+    results
+  }, error = function(errorCondition) {
+    # Note this will force the script to stop
+    note_complete(FALSE, errorCondition$message)
+  })
 }
 
 # Select top loading genes from components
@@ -200,3 +237,5 @@ top_gene_names %>%
     cell_type = cell_type
   ) %>%
   write_tsv(output_path)
+
+note_complete(TRUE, NA)
