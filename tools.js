@@ -181,7 +181,7 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
       R.join(' ')
     )([color(response), chalk.gray(message), info]);
     // TODO: Note data and time of message
-    console.log(` ${color('┌─────')}${pad(` ${header} `, lineWidth, color('-'))}`);
+    console.log(` ${color('┌─────')}${pad(` ${header} `, lineWidth, color('─'))}`);
     console.log(` ${color('│')} ${chalk.yellow(target)}`);
     console.log(` ${color('│')} ${chalk.white(args.join(' '))}`);
     if (err) {

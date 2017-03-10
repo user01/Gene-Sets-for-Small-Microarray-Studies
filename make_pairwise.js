@@ -64,13 +64,16 @@ const celltypes_to_tasks = (celltypes) => {
 
 
 const bootstrap = (task) => {
-  const path_output = res(`score.${
+  const filename = `.${
     z(task.bootstrap)
   }.${
     task.type
   }.${
     task.name.replace(/\s+/g, '_')
-  }.tsv`);
+  }.tsv`;
+  const path_output = res(`score${filename}`)
+  const path_feedback = res(`feedback${filename}`)
+
   const args_lda = [
     'score_lda.R',
     '--input',
@@ -82,10 +85,12 @@ const bootstrap = (task) => {
     '--name',
     `"${task.name}"`,
     '--output',
-    path_output
+    path_output,
+    '--feedback',
+    path_feedback
   ];
   return make(
-      path_output,
+      path_feedback, // Using feedback allows passes to be skipped if unable to run
       'Rscript',
       args_lda,
       noteRun,
