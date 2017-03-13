@@ -1,4 +1,4 @@
-const concurrency = 2;
+const concurrency = 6;
 const bootstraps = 100;
 
 // Import Libraries
@@ -105,8 +105,8 @@ const bootstrapAll = (tasks) => Promise.map(tasks, bootstrap, {concurrency});
 
 
 const buildSets = (type) => {
-  const path_output = pairwise(`sets_${type}.gmt`);
-  const pattern = `score_${type}_\\\\d+.tsv`;
+  const path_output = res(`sets_${type}.gmt`);
+  const pattern = `score\\.\\\\d+\\.${type}\\..+tsv`;
   const args = [
     'pairwise_buildsets.R',
     '--scorespath',
@@ -118,7 +118,8 @@ const buildSets = (type) => {
   ];
   return make(path_output, 'Rscript', args);
 }
-const buildSetsAll = () => Promise.map(['General_Cell_Type','Cell_Type'], buildSets, {concurrency});
+const buildSetsAll = () => Promise.map(['General_Cell_Type'], buildSets, {concurrency});
+// const buildSetsAll = () => Promise.map(['General_Cell_Type','Cell_Type'], buildSets, {concurrency});
 
 
 
@@ -132,7 +133,7 @@ load_data()
       })
       .then(bootstrapAll)
       .then(info('Bootstrap Complete'))
-      .then(x => scoreAll(cell_types))
+      .then(x => buildSetsAll())
   })
   .then(x => {
     const wallTime = moment.duration(moment().diff(start))
