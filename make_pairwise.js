@@ -1,5 +1,5 @@
-const concurrency = 7;
-const bootstraps = 5;
+const concurrency = 2;
+const bootstraps = 100;
 
 // Import Libraries
 const R = require('ramda'),
@@ -56,7 +56,8 @@ const celltypes_to_tasks = (celltypes) => {
   };
   const tasks = R.concat(
     types_to_tasks('General_Cell_Type'),
-    types_to_tasks('Cell_Type')
+    // types_to_tasks('Cell_Type')
+    []
   );
   return Promise.resolve(tasks);
 };
@@ -109,7 +110,7 @@ const buildSets = (type) => {
   const args = [
     'pairwise_buildsets.R',
     '--scorespath',
-    'pairwise',
+    'results',
     '--scorespattern',
     pattern,
     '--output',
