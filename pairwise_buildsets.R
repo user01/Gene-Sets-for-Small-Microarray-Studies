@@ -6,6 +6,7 @@ suppressPackageStartupMessages({
   library(argparse)
 })
 
+options(expressions=500000) # increase call stack
 
 parser <- ArgumentParser()
 
@@ -25,7 +26,7 @@ args <- parser$parse_args()
 scorespath <- args$scorespath
 # scorespath <- "results"
 scorespattern <- args$scorespattern
-# scorespattern <- "score\\.\\d+\\.Cell_Type\\..+.tsv"
+# scorespattern <- "score\\.\\d+\\.General_Cell_Type\\..+tsv"
 output <- args$output
 # output <- file.path("pairwise", "set_results.gmt")
 
