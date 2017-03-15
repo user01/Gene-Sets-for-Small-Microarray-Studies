@@ -112,7 +112,7 @@ gene_data %>%
   genes_count
 gene_data %>%
   ncol %>%
-  sample(replace = TRUE) %>%
+  sample(replace = FALSE) %>% # replace = FALSE would prevent collinear issues
   head(genes_count) %>%
   select(gene_data, .) %>%
   cbind(data.frame(type_truth = gene_labels)) ->
