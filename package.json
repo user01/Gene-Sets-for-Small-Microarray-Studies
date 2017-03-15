@@ -2,9 +2,11 @@
   "name": "neuroimmunology-capstone",
   "version": "1.0.0",
   "description": "",
-  "main": "make.js",
+  "main": "make_classify.js",
   "scripts": {
-    "start": "node make.js"
+    "pairwise": "node make_pairwise.js",
+    "classify": "node make_classify.js",
+    "start": "node make_classify.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,7 @@
   "dependencies": {
     "bluebird": "^3.4.7",
     "chalk": "^1.1.3",
+    "csv-parse": "^1.2.0",
     "moment": "^2.17.1",
     "pad": "^1.0.2",
     "ramda": "^0.23.0"
