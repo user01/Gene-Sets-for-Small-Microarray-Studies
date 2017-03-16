@@ -8,6 +8,7 @@ const R = require('ramda'),
 const {
   readJson,
   taskToName,
+  taskArgsToNew,
   taskify,
   make,
   res,
@@ -25,13 +26,20 @@ const clusterTasks = R.pipe(
   taskify('cluster'),
   R.xprod(R.__, dimensionReductionTasks),
   R.map(task => {
-    const newArgs = taskToName(task[1], task[0][4]);
-    const newTarget = task[0][3].replace('||', R.last(newArgs));
+
+    const newArgs = taskArgsToNew(task[1], task[0][4]);
+    const newName = taskToName(task[1], task[0][4]);
+    const output_path = task[0][3].replace('||', newName);
+
+    const fixedArgs = R.pipe(
+      R.remove(6,7),
+      R.concat(R.__, ['--output', res(output_path)])
+    )(newArgs);
     return R.pipe(
       R.head,
       R.remove(2, 3), // Remove the name, old target
-      R.concat(R.__, [newTarget, newArgs])
-    )(task)
+      R.concat(R.__, [output_path, fixedArgs])
+    )(task);
   })
 )(clusterData);
 
@@ -57,6 +65,18 @@ const load_data = () => {
   return make(res('gene_data_vs_cell_type.tsv'), 'Rscript', ['load_data.R'], noteRun, noteMs);
 }
 
+const args_to_outfile = (script_name, args) => {
+  switch (script_name) {
+    case 'dimreduction_pca.R':
+      return `dimreduction_pca_dimensions_${args[1]}.tsv`;
+    case 'dimreduction_tsne.R':
+      return `dimreduction_tsne_perplexity_${args[1]}_${args[3]}.tsv`;
+    default:
+      console.error(`Unknown script name: ${script_name}`);
+  }
+  return 'unknown_data.tsv';
+}
+
 // Perform all dimension reduction
 const dimreduction = () => {
   const correctedTasks = R.map(task => {
@@ -68,11 +88,17 @@ const dimreduction = () => {
     )(task);
   }, dimensionReductionTasks);
   return Promise.map(correctedTasks, (task) => {
-    return make(res(task[2]),
-      task[0], R.prepend(task[1], task[3]), noteRun, noteMs);
+    const outputPath = res(task[2]);
+    const inputPath = res('gene_data_vs_cell_type.tsv');
+    const args = R.pipe(
+      R.prepend(task[1]),
+      R.concat(R.__, ['--input', inputPath, '--output', outputPath])
+    )(task[3]);
+    return make(outputPath,
+      task[0], args, noteRun, noteMs);
   }, {
-    concurrency
-  });
+      concurrency
+    });
 };
 
 // Perform all clustering
@@ -81,8 +107,8 @@ const cluster = () => {
     return make(res(task[2]),
       task[0], R.prepend(task[1], task[3]), noteRun, noteMs);
   }, {
-    concurrency
-  });
+      concurrency
+    });
 }
 
 // Read final results
@@ -105,8 +131,8 @@ load_data()
     const wallTime = moment.duration(moment().diff(start))
     const procTime = moment.duration(allMs);
     info(`All Tasks Finished`);
-    console.log(`${pad(71, chalk.blue("Processing Time:"))}${pad(20,procTime.asSeconds() + ' seconds')}${pad(20,procTime.humanize())}`);
-    console.log(`${pad(71, chalk.blue("Wall Time:"))}${pad(20,wallTime.asSeconds() + ' seconds')}${pad(20,wallTime.humanize())}`);
+    console.log(`${pad(71, chalk.blue("Processing Time:"))}${pad(20, procTime.asSeconds() + ' seconds')}${pad(20, procTime.humanize())}`);
+    console.log(`${pad(71, chalk.blue("Wall Time:"))}${pad(20, wallTime.asSeconds() + ' seconds')}${pad(20, wallTime.humanize())}`);
   });
 
 info(`Starting ${clusterTasks.length + dimensionReductionTasks.length} tasks`);
