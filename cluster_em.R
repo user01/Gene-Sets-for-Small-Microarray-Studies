@@ -12,15 +12,24 @@ parser <- ArgumentParser()
 parser$add_argument("-c", "--clusters", type="integer", default=8,
     help="Number of clusters to create")
 
-parser$add_argument("-n", "--name", type="character", required=TRUE,
+parser$add_argument("-i", "--input", type="character",
+    default=file.path("results", "results_pca.tsv"),
     help="Name of dimension reduced data set. Used to locate input TSV file and write output TSV. Input TSV must conform to table with Cell_Type, General_Cell_Type, and any number of float fields.")
 
+parser$add_argument("-o", "--output", type="character",
+    default=file.path("results", "results_hierarchical.tsv"),
+    help="Path to output prediction results")
 
 args <- parser$parse_args()
 
-data_target <- args$name %>%
-  paste0("dimreduction_", ., ".tsv") %>%
-  file.path("results", .) %>%
+input_path <- args$input
+# input_path <- file.path("results", "results_pca.tsv")
+output_path <- args$output
+# output_path <- file.path("results", "results_hierarchical.tsv")
+clusters <- args$clusters
+# clusters <- 8
+
+data_target <- input_path %>%
   read_tsv(col_types = cols(
     .default = col_double(),
     Cell_Type = col_character(),
@@ -79,7 +88,7 @@ data_range %>%
     data_labels_target <- data_labels %>% filter(idx == data_range)
 
     # Perform cluster
-    emobj <- emgroup(data_pca_current, nclass = args$clusters)
+    emobj <- emgroup(data_pca_current, nclass = clusters)
     ret <- emcluster(data_pca_current, emobj, assign.class = TRUE)
 
     data_pca_target %>%
@@ -99,11 +108,11 @@ data_range %>%
 
     if (dimensions_available == 2) {
       # Render cluster plot
-      paste0("cluster.em." ,args$name , ".", args$clusters, "c_" ,idx ,".png") %>%
+      paste0("cluster.em." , output_path , ".", clusters, "c_" ,idx ,".png") %>%
         file.path("plots",.) %>%
         png(filename=.)
       plotem(ret, data_pca_current,
-        main=paste0("EM ", args$name, " ", args$clusters, " Clusters. ", str_pad(idx, 3, pad = "0"), ""),
+        main=paste0("EM ", output_path, " ", clusters, " Clusters. ", str_pad(idx, 3, pad = "0"), ""),
         sub=paste0(
           get_label("General", data_labels_target$General_Cell_Type, predicted_class_general_cell_type),
           " ",
@@ -133,14 +142,11 @@ results_str <- function(truth, predicted) {
 }
 gct_res <- results_str(data_results$General_Cell_Type, data_results$General_Cell_Type_Predicted)
 ct_res <- results_str(data_results$Cell_Type, data_results$Cell_Type_Predicted)
-paste0("For ",args$name," with ", args$clusters,
+paste0("For ",output_path," with ", clusters,
        " clusters, General Cell Type success was ", gct_res,
        " and Cell Type was ", ct_res, ".") %>%
        print()
 
-# 'cluster_em_tsne_perplexity_40_pca_true_clusters_16.tsv'
-data_results_path <- paste0("cluster_em_", args$name, "_clusters_", args$clusters, ".tsv") %>%
-  file.path("results", .)
 
 data_results %>%
-  write_tsv(data_results_path)
+  write_tsv(output_path)
