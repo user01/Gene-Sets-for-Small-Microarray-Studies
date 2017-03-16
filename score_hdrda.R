@@ -153,6 +153,8 @@ hdrda_fit <- function(df) {
 genes_bootstrapped_downsampled %>%
   hdrda_fit %>%
   get("U1", .) %>%
+  as.data.frame %>%
+  get("V1", .)%>%
   (function(m) {
     data.frame(
       loading = m %>% unlist %>% unname,
