@@ -152,7 +152,7 @@ hdrda_fit <- function(df) {
 # Select top loading genes from components
 genes_bootstrapped_downsampled %>%
   hdrda_fit %>%
-  get("scaling", .) %>%
+  get("U1", .) %>%
   (function(m) {
     data.frame(
       loading = m %>% unlist %>% unname,
