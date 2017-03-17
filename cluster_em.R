@@ -109,6 +109,7 @@ data_range %>%
     if (dimensions_available == 2) {
       # Render cluster plot
       paste0("cluster.em." , output_path , ".", clusters, "c_" ,idx ,".png") %>%
+        str_replace_all(., '[^\\w_\\d]', '.')
         file.path("plots",.) %>%
         png(filename=.)
       plotem(ret, data_pca_current,
