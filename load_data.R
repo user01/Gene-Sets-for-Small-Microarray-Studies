@@ -39,7 +39,7 @@ Gautier_Immgen_Norm_Data %>%
 
 unscaled_gene_data_vs_cell_type %>%
   select(-GSM_ID, -Cell_Type, -General_Cell_Type) %>%
-  apply(2,function(x) as.numeric(as.character(x))) %>%
+  apply(2, function(x) as.numeric(x)) %>%
   scale %>%
   cbind(unscaled_gene_data_vs_cell_type %>%
           select(GSM_ID, Cell_Type, General_Cell_Type)) ->
