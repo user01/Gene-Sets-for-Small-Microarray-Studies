@@ -128,35 +128,42 @@ genes_bootstrapped %>%
   rbind(genes_bootstrapped_truth) ->
   genes_bootstrapped_downsampled
 
-# HDRDA fit for components
-hdrda_fit <- function(df) {
-  tryCatch({
-    results <- hdrda(df %>%
-                     select(-type_truth) %>%
-                     as.matrix,
-                   df %>%
-                     select(type_truth) %>%
-                     unlist %>%
-                     unname %>%
-                     as.character,
-                   CV = FALSE)
-    results
-  }, error = function(errorCondition) {
-    # Note this will force the script to stop
-    note_complete(FALSE, errorCondition$message)
-  })
+# Functions to isolate inputs from outputs, converted into hdrda friendly types
+data_inputs <- function(df) {
+  df %>%
+    select(-type_truth) %>%
+    as.matrix %>%
+    unname
+}
+data_outputs <- function(df) {
+  df %>%
+    select(type_truth) %>%
+    unlist %>%
+    unname %>%
+    as.character
 }
 
 # Select top loading genes from components
-genes_bootstrapped_downsampled %>%
-  hdrda_fit %>%
+hdrda_cv(genes_bootstrapped_downsampled %>% data_inputs,
+         genes_bootstrapped_downsampled %>% data_outputs,
+         num_folds = 10,
+         num_lambda = 40,
+         num_gamma = 20) -> hdrda_main
+
+hdrda_main %>% glimpse
+
+hdrda_main$lambda
+
+hdrda_main %>%
   get("U1", .) %>%
   as.data.frame %>%
-  get("V1", .)%>%
+  get("V1", .) %>%
   (function(m) {
     data.frame(
       loading = m %>% unlist %>% unname,
-      gene = m %@% "dimnames" %>% nth(1)
+      gene = genes_bootstrapped_downsampled %>%
+        select(-type_truth) %>%
+        colnames
     )
   }) %>%
   mutate(
@@ -177,24 +184,21 @@ data_range %>%
     data_train <- genes_bootstrapped_downsampled %>% filter(idx != data_range)
     data_test <- genes_bootstrapped_downsampled %>% filter(idx == data_range)
 
-    hdrda_model <- hdrda_fit(data_train)
+    hdrda_model <- hdrda(data_train %>% data_inputs,
+                         data_train %>% data_outputs,
+                         lambda = hdrda_main$lambda,
+                         gamma = hdrda_main$gamma,
+                         shrinkage_type = hdrda_main$shrinkage_type)
 
     data_test %>%
-      select(type_truth) %>%
-      unlist %>%
-      unname %>%
-      as.character ->
-      type_truth
-
-    data_test %>%
-      select(-type_truth) %>%
+      data_inputs %>%
       predict(hdrda_model, newdata = .) %>%
       get("class", .) ->
       type_predicted
 
     data.frame(
       idx = idx,
-      type_truth = type_truth,
+      type_truth = data_test %>% data_outputs,
       type_predicted = type_predicted
     )
   }) %>%
