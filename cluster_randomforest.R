@@ -12,19 +12,24 @@ parser <- ArgumentParser()
 parser$add_argument("-t", "--trees", type="integer", default=64,
     help="Number of trees to grow")
 
-parser$add_argument("-n", "--name", type="character", required=TRUE,
+parser$add_argument("-i", "--input", type="character",
+    default=file.path("results", "results_pca.tsv"),
     help="Name of dimension reduced data set. Used to locate input TSV file and write output TSV. Input TSV must conform to table with Cell_Type, General_Cell_Type, and any number of float fields.")
+
+parser$add_argument("-o", "--output", type="character",
+    default=file.path("results", "results_randomforest.tsv"),
+    help="Path to output prediction results")
 
 args <- parser$parse_args()
 
-name <- args$name
-# name <- "pca_dimensions_2"
+input_path <- args$input
+# input_path <- file.path("results", "results_pca.tsv")
+output_path <- args$output
+# output_path <- file.path("results", "results_randomforest.tsv")
 ntree <- args$trees
 # ntree <- 64
 
-data_target <- name %>%
-  paste0("dimreduction_", ., ".tsv") %>%
-  file.path("results", .) %>%
+data_target <- input_path %>%
   read_tsv(col_types = cols(
     .default = col_double(),
     Cell_Type = col_character(),
@@ -95,13 +100,10 @@ results_str <- function(truth, predicted) {
 }
 gct_res <- results_str(data_results$General_Cell_Type, data_results$General_Cell_Type_Predicted)
 ct_res <- results_str(data_results$Cell_Type, data_results$Cell_Type_Predicted)
-paste0("For ", name," with ", ntree,
+paste0("For ", output_path, " with ", ntree,
        " trees, General Cell Type success was ", gct_res,
        " and Cell Type was ", ct_res, ".") %>%
        print()
 
-data_results_path <- paste0("cluster_randomforest_", name, "_trees_", ntree, ".tsv") %>%
-  file.path("results", .)
-
 data_results %>%
-  write_tsv(data_results_path)
+  write_tsv(output_path)

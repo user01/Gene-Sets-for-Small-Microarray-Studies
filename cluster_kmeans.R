@@ -10,20 +10,25 @@ parser <- ArgumentParser()
 parser$add_argument("-c", "--clusters", type="integer", default=8,
     help="Number of clusters to create")
 
-parser$add_argument("-n", "--name", type="character", required=TRUE,
+parser$add_argument("-i", "--input", type="character",
+    default=file.path("results", "results_pca.tsv"),
     help="Name of dimension reduced data set. Used to locate input TSV file and write output TSV. Input TSV must conform to table with Cell_Type, General_Cell_Type, and any number of float fields.")
+
+parser$add_argument("-o", "--output", type="character",
+    default=file.path("results", "results_kmeans.tsv"),
+    help="Path to output prediction results")
 
 args <- parser$parse_args()
 
-name <- args$name
-# name <- "pca_dimensions_2"
+input_path <- args$input
+# input_path <- file.path("results", "results_pca.tsv")
+output_path <- args$output
+# output_path <- file.path("results", "results_kmeans.tsv")
 clusters <- args$clusters
 # clusters <- 8
 
 
-data_target <- name %>%
-  paste0("dimreduction_", ., ".tsv") %>%
-  file.path("results", .) %>%
+data_target <- input_path %>%
   read_tsv(col_types = cols(
     .default = col_double(),
     Cell_Type = col_character(),
@@ -154,8 +159,6 @@ paste0("For ", name," with ", clusters,
        " and Cell Type was ", ct_res, ".") %>%
        print()
 
-data_results_path <- paste0("cluster_kmeans_", name, "_clusters_", clusters, ".tsv") %>%
-  file.path("results", .)
 
 data_results %>%
-  write_tsv(data_results_path)
+  write_tsv(output_path)

@@ -15,7 +15,7 @@ const readJson = R.pipe(
   (buf) => buf.toString(),
   JSON.parse
 );
-
+const res = (filename) => path.join('results', filename);
 
 const readTsv = (tsvFile) => {
   return new Promise(function(resolve, reject) {
@@ -122,15 +122,20 @@ const taskify = (leader) => {
   );
 };
 
-const taskToName = (task, existingArgs) => {
-  const name = R.pipe(
+const taskToName = (task) => {
+  return R.pipe(
     R.nth(4),
     R.map(R.replace('--', '')),
-    R.join('_')
+    R.join('_'),
+    (end) => `${task[2]}_${end}`
   )(task);
+};
+
+const taskArgsToNew = (task, existingArgs) => {
+  const name = taskToName(task);
   return R.pipe(
-    R.append('--name'),
-    R.append(`${task[2]}_${name}`)
+    R.append('--input'),
+    R.append(res(`dimreduction_${name}.tsv`))
   )(existingArgs);
 };
 
@@ -214,12 +219,13 @@ module.exports = {
   filenameObjTo,
   taskify,
   taskToName,
+  taskArgsToNew,
   fsAccess,
   readTypes,
   cmd,
   make,
   z: (s) => pad(5, s+'', '0'),
-  res: (filename) => path.join('results', filename),
+  res,
   data: (filename) => path.join('data', filename),
   info: i => {
     return (innerValue) => {
