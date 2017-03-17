@@ -1,4 +1,4 @@
-const concurrency = 6;
+const concurrency = 1;
 const bootstraps = 100;
 
 // Import Libraries
@@ -76,7 +76,7 @@ const bootstrap = (task) => {
   const path_feedback = res(`feedback${filename}`)
 
   const args_lda = [
-    'score_lda.R',
+    'score_hdrda.R',
     '--input',
     res('gene_data_vs_cell_type.tsv'),
     '--seed',
