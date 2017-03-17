@@ -32,7 +32,6 @@ const clusterTasks = R.pipe(
     const output_path = task[0][3].replace('||', newName);
 
     const fixedArgs = R.pipe(
-      R.remove(6,7),
       R.concat(R.__, ['--output', res(output_path)])
     )(newArgs);
     return R.pipe(
