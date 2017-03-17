@@ -1,6 +1,4 @@
 suppressPackageStartupMessages({
-  #library(MASS)
-  install.packages('sparsediscrim', dependencies = TRUE)
   library(sparsediscrim)
   library(readr)
   library(stringr)
