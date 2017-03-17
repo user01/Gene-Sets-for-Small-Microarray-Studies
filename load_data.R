@@ -35,6 +35,14 @@ Gautier_Immgen_Norm_Data %>%
   mutate(GSM_ID = colnames(Gautier_Immgen_Norm_Data)) %>%
   inner_join(Gautier_Immgen_Sample_Metadata) %>%
   `colnames<-`(gene_names) ->
+  unscaled_gene_data_vs_cell_type
+
+unscaled_gene_data_vs_cell_type %>%
+  select(-GSM_ID, -Cell_Type, -General_Cell_Type) %>%
+  apply(2, function(x) as.numeric(x)) %>%
+  scale %>%
+  cbind(unscaled_gene_data_vs_cell_type %>%
+          select(GSM_ID, Cell_Type, General_Cell_Type)) ->
   gene_data_vs_cell_type
 
 write_tsv(gene_data_vs_cell_type, file.path("results", "gene_data_vs_cell_type.tsv"))
