@@ -73,10 +73,9 @@ const bootstrap = (task) => {
     task.name.replace(/\s+/g, '_')
   }.tsv`;
   const path_output = res(`score${filename}`)
-  const path_feedback = res(`feedback${filename}`)
 
   const args_lda = [
-    'score_lda.R',
+    'score_lda.py',
     '--input',
     res('gene_data_vs_cell_type.tsv'),
     '--seed',
@@ -86,13 +85,11 @@ const bootstrap = (task) => {
     '--name',
     `"${task.name}"`,
     '--output',
-    path_output,
-    '--feedback',
-    path_feedback
+    path_output
   ];
   return make(
-      path_feedback, // Using feedback allows passes to be skipped if unable to run
-      'Rscript',
+      path_output,
+      'python',
       args_lda,
       noteRun,
       noteMs,
