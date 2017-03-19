@@ -29,19 +29,21 @@ args = parser.parse_args()
 #     '--input', 'results/gene_data_vs_cell_type.tsv',
 #     '--seed', '0',
 #     '--type', 'General_Cell_Type',
-#     '--name', "Monocyte",
+#     '--name', '"Monocyte"',
 #     '--output', 'results/score.00000.General_Cell_Type.Monocyte.tsv'
 # ]))
 
+# Important since some names have spaces
+cell_name = args.name.replace('"', '')
 
 data_00 = pd.read_table(args.input)
 data_01 = data_00.assign(truth=data_00.Cell_Type if args.type ==
                          'Cell_Type' else data_00.General_Cell_Type) \
     .drop(['GSM_ID', 'Cell_Type', 'General_Cell_Type'], axis=1)
 
-others = (data_01.truth == args.name).apply(
-    lambda x: args.name if x else "other")
-data_02 = data.assign(truth=others)
+others = (data_01.truth == cell_name).apply(
+    lambda x: cell_name if x else "other")
+data_02 = data_01.assign(truth=others)
 
 data_normal = data_02.query('truth != "other"').reset_index(drop=True)
 data_other = data_02.query('truth == "other"')\
@@ -109,7 +111,7 @@ final_results = pd.DataFrame({
     'high': gene_pairs[1],
     'frequency': 1,
     'score': score,
-    'cell_name': args.name,
+    'cell_name': cell_name,
     'cell_type': args.type})[[
         'low',
         'high',
