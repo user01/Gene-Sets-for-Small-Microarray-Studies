@@ -53,9 +53,8 @@ data_03 = pd.DataFrame.append(data_normal, data_other)\
 
 
 def lda_model(data):
-    X_train = ignore_one(
-        data.drop(['truth'], axis=1), idx).as_matrix()
-    y_train = ignore_one(data[['truth']], idx).as_matrix().T[0]
+    X_train = data.drop(['truth'], axis=1).as_matrix()
+    y_train = data[['truth']].as_matrix().T[0]
 
     clf = LinearDiscriminantAnalysis()
     clf.fit(X_train, y_train)
@@ -63,13 +62,6 @@ def lda_model(data):
 
 
 lda_model_main = lda_model(data_03)
-
-lda_model_main.scalings_.shape
-lda_model_main.scalings_[:, 0].shape
-
-data_03.columns[:-1]
-data_03.columns[:-1].shape
-
 top_genes = math.floor(1 / 2 * (math.sqrt(8 * args.pairs + 1) + 1))
 
 top_gene_names = pd.DataFrame({
@@ -78,6 +70,37 @@ top_gene_names = pd.DataFrame({
     .sort_values('loading', ascending=False)\
     .reset_index(drop=True)\
     .iloc[:top_genes]
+
+# np.array(top_gene_names.gene)
+
+def ignore_one(df, idx):
+    skip_list = [i for i in range(0, df.shape[0]) if i != idx]
+    return df.ix[skip_list]
+
+
+def keep_one(df, idx):
+    skip_list = [i for i in range(0, df.shape[0]) if i == idx]
+    return df.ix[skip_list]
+
+
+def leave_one_out(df, idx):
+    data_train = ignore_one(df, idx)
+    data_test = keep_one(df, idx)
+    clf = lda_model(data_train)
+    X_test = data_test.drop(['truth'], axis=1).as_matrix()
+    y_test = data_test[['truth']].as_matrix().T[0]
+    result = clf.predict(X_test)
+    return result[0] == y_test[0]
+
+def run(data):
+    return list(map(lambda idx: leave_one_out(data, idx),
+                    range(0, data.shape[0])))
+
+results = run(data_03)
+score = np.sum(results) / len(results)
+
+
+
 
 
 print(args.seed)
