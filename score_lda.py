@@ -120,4 +120,5 @@ final_results = pd.DataFrame({
         'cell_name',
         'cell_type']]
 
-final_results.to_csv(args.output, sep='\t', encoding='utf-8')
+final_results.to_csv(args.output, sep='\t',
+                     encoding='utf-8', index=False)
