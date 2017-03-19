@@ -1,11 +1,12 @@
 import argparse
 import math
+from itertools import combinations
 import numpy as np
 import pandas as pd
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 
-parser = argparse.ArgumentParser(description='Perform LDA ')
+parser = argparse.ArgumentParser(description='Perform LDA')
 parser.add_argument('--seed', type=int, default=451,
                     help='Random seed for operation')
 parser.add_argument('--pairs', type=int, default=200,
@@ -71,7 +72,6 @@ top_gene_names = pd.DataFrame({
     .reset_index(drop=True)\
     .iloc[:top_genes]
 
-# np.array(top_gene_names.gene)
 
 def ignore_one(df, idx):
     skip_list = [i for i in range(0, df.shape[0]) if i != idx]
@@ -92,6 +92,7 @@ def leave_one_out(df, idx):
     result = clf.predict(X_test)
     return result[0] == y_test[0]
 
+
 def run(data):
     return list(map(lambda idx: leave_one_out(data, idx),
                     range(0, data.shape[0])))
@@ -100,8 +101,21 @@ results = run(data_03)
 score = np.sum(results) / len(results)
 
 
+gene_pairs = np.array(list(combinations(np.sort(
+    top_gene_names.gene, axis=-1, kind='quicksort', order=None), 2))).T
 
+final_results = pd.DataFrame({
+    'low': gene_pairs[0],
+    'high': gene_pairs[1],
+    'frequency': 1,
+    'score': score,
+    'cell_name': args.name,
+    'cell_type': args.type})[[
+        'low',
+        'high',
+        'frequency',
+        'score',
+        'cell_name',
+        'cell_type']]
 
-
-print(args.seed)
-print(data.shape)
+final_results.to_csv(args.output, sep='\t', encoding='utf-8')
