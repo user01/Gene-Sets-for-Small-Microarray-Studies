@@ -150,7 +150,8 @@ const buildSetsAll = (tasks) => {
 }
 
 const evaluateSet = (feedback) => {
-  return readFeedback(feedback);
+  return readFeedback(feedback)
+    .map(feedback_chunk => console.log(feedback_chunk));
 };
 
 const evaluateSets = (feedbacks) => {

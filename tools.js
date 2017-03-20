@@ -16,6 +16,7 @@ const readJson = R.pipe(
   JSON.parse
 );
 const res = (filename) => path.join('results', filename);
+const z = (s) => pad(5, s + '', '0');
 
 const readTsv = (tsvFile) => {
   return new Promise(function(resolve, reject) {
@@ -57,16 +58,23 @@ const readTypes = (typesFile) => {
     });
 };
 
+const feedbackToTask = (feedback) => {
+  return {
+    feedback,
+    input: res(`set.data.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`),
+    output: res(`set.data.__.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`)
+  };
+};
+
 const readFeedback = (feedbackFile) => {
   return readTsv(feedbackFile)
     .then(feedbacks => {
       const keys = R.head(feedbacks);
-      const set_values = R.pipe(
+      return R.pipe(
         R.tail,
-        R.map(R.zipObj(keys))
+        R.map(R.zipObj(keys)),
+        R.map(feedbackToTask)
       )(feedbacks);
-      console.log(set_values);
-      return feedbacks;
     });
 };
 
@@ -241,7 +249,7 @@ module.exports = {
   readFeedback,
   cmd,
   make,
-  z: (s) => pad(5, s + '', '0'),
+  z,
   res,
   data: (filename) => path.join('data', filename),
   info: i => {
