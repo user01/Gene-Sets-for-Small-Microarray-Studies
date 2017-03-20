@@ -150,15 +150,9 @@ const buildSetsAll = (tasks) => {
   });
 };
 
-const evaluateSet = (feedback) => {
-  return readFeedback(feedback)
-    .map(feedback_chunk => console.log(feedback_chunk), {
-      concurrency: 1
-    });
-};
 
 const evaluateSets = (feedbacks) => {
-  return Promise.map(feedbacks, evaluateSet, {
+  return Promise.map(feedbacks, readFeedback, {
     concurrency
   });
 };

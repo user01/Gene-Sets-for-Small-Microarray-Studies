@@ -62,8 +62,8 @@ const feedbackToTask = (feedback) => {
   return {
     feedback,
     input: res(`set.data.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`),
-    output: res(`set.results.*.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`),
-    mid: res(`set.mid.*.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`)
+    output: res(`set.results.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.*.tsv`),
+    mid: res(`set.mid.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.*.tsv`)
   };
 };
 
@@ -75,7 +75,6 @@ const feedbackResults = (feedbackChunk) => {
 }
 const hardCodeTsne = (feedbackChunk) => {
   const inputPath = feedbackChunk.input;
-  console.log(feedbackChunk);
   const dimReduction = feedbackChunk.mid.replace('*', 'tsne');
   return make(
     dimReduction, 'Rscript', [
@@ -95,7 +94,7 @@ const hardCodeTsne = (feedbackChunk) => {
 };
 const hardCodeRandomForest = (feedbackChunk) => {
   const inputPath = feedbackChunk.dimReduction;
-  const resultsPath = feedbackChunk.results.replace('*', 'RandomForest');
+  const resultsPath = feedbackChunk.output.replace('*', 'RandomForest');
   return make(
     resultsPath, 'Rscript', [
       'cluster_randomforest.R',
@@ -112,7 +111,7 @@ const hardCodeRandomForest = (feedbackChunk) => {
 };
 const hardCodeEM = (feedbackChunk) => {
   const inputPath = feedbackChunk.dimReduction;
-  const resultsPath = feedbackChunk.results.replace('*', 'EM');
+  const resultsPath = feedbackChunk.output.replace('*', 'EM');
   return make(
     resultsPath, 'Rscript', [
       'cluster_em.R',
