@@ -29,17 +29,20 @@ parser.add_argument('--input', type=str, required=True,
                     help='Path to input data')
 parser.add_argument('--output', type=str, required=True,
                     help='Path to output set files')
+parser.add_argument('--feedback', type=str, required=True,
+                    help='Path to feedback file (list of created sets)')
 
-args = parser.parse_args()
-# args = parser.parse_args(([
-#     '--low', '16',
-#     '--high', '100',
-#     '--input', 'results',
-#     '--seed', '0',
-#     '--type', 'General_Cell_Type',
-#     '--name', '"Monocyte"',
-#     '--output', 'results'
-# ]))
+# args = parser.parse_args()
+args = parser.parse_args(([
+    '--low', '16',
+    '--high', '100',
+    '--input', 'results',
+    '--seed', '0',
+    '--type', 'General_Cell_Type',
+    '--name', '"Monocyte"',
+    '--output', 'results',
+    '--feedback', 'results/feedback.sets.tsv'
+]))
 
 # Important since some names have spaces
 cell_name = args.name.replace('"', '').replace(' ', '_')
@@ -116,9 +119,11 @@ def collapse_sets_(unfinished_sets, known_sets):
         # remaining_sets
         known_clean = known_sets
         untested_sets = list(map(
-            lambda gs: gs | gene_set if set_contained_in_set(gs, gene_set) else gs))
+            lambda gs: gs | gene_set if set_contained_in_set(
+                gs, gene_set) else gs,
+            remaining_sets))
     else:
-    # this set stands alone
+        # this set stands alone
         known_clean = known_sets + [gene_set]
         untested_sets = remaining_sets
 
@@ -127,7 +132,7 @@ def collapse_sets_(unfinished_sets, known_sets):
 
 def pairs_to_sets(pairs):
     """Turn a low/high pandas dataframe into a list of sets"""
-    return pairs_to_sets_(pairs[['low','high']], [])
+    return pairs_to_sets_(pairs[['low', 'high']], [])
 
 
 def pairs_to_sets_(pairs, gene_sets):
@@ -146,3 +151,50 @@ def pairs_to_sets_(pairs, gene_sets):
 
     pairs_tail = pairs.tail(-1)
     return pairs_to_sets_(pairs_tail, gene_sets)
+
+#
+# temp_values = set_minimal.drop(['weighted_score'], axis=1)
+# set_minimal[['low', 'high']]
+#
+# pairs_to_sets(temp_values)
+#
+# tt = pd.DataFrame({"low": ['a', 'b', 'c'], 'high': ['b', 'd', 'g']})
+#
+# pairs_to_sets(tt)
+#
+# head_sizes
+# len(head_sizes)
+
+
+def set_values(paired_scores, min_size, head_size):
+    values = paired_scores.head(head_size)
+    scores = values.weighted_score
+    current_sets = list(filter(lambda gene_set: len(gene_set) >= min_size, pairs_to_sets(values)))
+
+    feedback_frame = pd.DataFrame({
+        'size': [head_size],
+        'count': [len(current_sets)],
+        'score_max': [np.max(scores)],
+        'score_min': [np.min(scores)],
+        'score_avg': [np.mean(scores)],
+        'score_std': [np.std(scores)]
+    })
+
+    return feedback_frame, current_sets
+
+results = map(lambda head_size: set_values(paired_scores, args.low, head_size),
+              head_sizes)
+
+list(results)
+
+all_sets = []
+for head_size in head_sizes:
+    current_cutoff = paired_scores.head(head_size)
+    current_sets = pairs_to_sets(current_cutoff)
+    all_sets = all_sets + current_sets
+
+
+pairs_to_sets(temp_values)
+
+
+""
