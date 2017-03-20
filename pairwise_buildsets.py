@@ -28,10 +28,12 @@ parser.add_argument('--name', type=str, required=True,
 parser.add_argument('--type', type=str, required=True,
                     help='General or specific cell type')
 
+parser.add_argument('--raw', type=str, required=True,
+                    help='Path to raw gene data')
 parser.add_argument('--input', type=str, required=True,
-                    help='Path to input data')
+                    help='Path to input score files')
 parser.add_argument('--output', type=str, required=True,
-                    help='Path to output set files')
+                    help='Path to output set id and data files')
 parser.add_argument('--feedback', type=str, required=True,
                     help='Path to feedback file (list of created sets)')
 
@@ -39,13 +41,15 @@ args = parser.parse_args()
 # args = parser.parse_args(([
 #     '--low', '16',
 #     '--high', '100',
+#     '--raw', 'results/gene_data_vs_cell_type.tsv',
 #     '--input', 'results',
-#     '--seed', '0',
 #     '--type', 'General_Cell_Type',
 #     '--name', '"Monocyte"',
 #     '--output', 'results',
 #     '--feedback', 'results/feedback.sets.tsv'
 # ]))
+
+raw_data = pd.read_table(args.raw)
 
 # Important since some names have spaces
 cell_name = args.name.replace('"', '').replace(' ', '_')
@@ -181,16 +185,24 @@ for head_size in head_sizes:
         break
 
 feedback = rbind_all(all_dfs)
-feedback = feedback.assign(cell_type = args.type, cell_name = cell_name)
+feedback = feedback.assign(cell_type=args.type, cell_name=cell_name)
 feedback.index.name = 'index'
 feedback.to_csv(args.feedback, sep='\t',
                 encoding='utf-8')
 
 
 for idx, gene_set in enumerate(all_sets):
-    frame = pd.DataFrame({'gene': list(gene_set)})
-    filename = 'set.{}.{}.{:05d}.tsv'.format(
+    gene_set_lst = list(gene_set)
+    frame = pd.DataFrame({'gene': gene_set_lst})
+    filename_set = 'set.{}.{}.{:05d}.tsv'.format(
         args.type, cell_name, idx)
-    path = os.path.join(args.output, filename)
-    frame.to_csv(path, sep='\t',
+    path_set = os.path.join(args.output, filename_set)
+    frame.to_csv(path_set, sep='\t',
                  encoding='utf-8', index=False)
+
+    filename_data = 'set.data.{}.{}.{:05d}.tsv'.format(
+        args.type, cell_name, idx)
+    path_data = os.path.join(args.output, filename_data)
+    frame_data = raw_data[gene_set_lst]
+    frame_data.to_csv(path_data, sep='\t',
+                      encoding='utf-8', index=False)
