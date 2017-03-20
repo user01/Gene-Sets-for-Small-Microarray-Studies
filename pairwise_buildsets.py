@@ -204,6 +204,6 @@ for idx, gene_set in enumerate(all_sets):
     filename_data = 'set.data.{}.{}.{:05d}.tsv'.format(
         args.type, cell_name, idx)
     path_data = os.path.join(args.output, filename_data)
-    frame_data = raw_data[gene_set_lst]
+    frame_data = raw_data[gene_set_lst + ['GSM_ID', 'Cell_Type', 'General_Cell_Type']]
     frame_data.to_csv(path_data, sep='\t',
                       encoding='utf-8', index=False)
