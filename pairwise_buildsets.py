@@ -183,6 +183,7 @@ for head_size in head_sizes:
         break
 
 feedback = rbind_all(all_dfs)
+feedback = feedback.assign(cell_type = args.type, cell_name = cell_name)
 feedback.index.name = 'index'
 feedback.to_csv(args.feedback, sep='\t',
                 encoding='utf-8')
