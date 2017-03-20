@@ -173,7 +173,8 @@ def set_values(paired_scores, min_size, max_size, head_size):
 
 all_sets = []
 all_dfs = []
-head_sizes = list(np.arange(steps) * args.low + args.low)
+head_sizes = list(np.arange(paired_scores.shape[0] // args.low)
+                  * args.low + args.low)
 for head_size in head_sizes:
     df, gene_sets = set_values(
         paired_scores, args.low, args.high, head_size)
