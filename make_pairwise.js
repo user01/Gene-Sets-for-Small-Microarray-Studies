@@ -1,4 +1,4 @@
-const concurrency = 1;
+const concurrency = 6;
 const bootstraps = 100;
 
 // Import Libraries
@@ -15,6 +15,7 @@ const {
   res,
   data,
   readTypes,
+  readFeedback,
   info
 } = require('./tools.js');
 
@@ -143,13 +144,20 @@ const buildSets = (task) => {
 }
 const buildSetsAll = (tasks) => {
   const tasks_without_bootstrap = R.uniqBy(o => `${o.type}-${o.name}`, tasks);
-  // console.log(tasks_without_bootstrap);
-  return Promise.map(tasks_without_bootstrap, buildSets, {
+  return Promise.map(R.take(5, tasks_without_bootstrap), buildSets, {
     concurrency
   });
 }
-// const buildSetsAll = () => Promise.map(['General_Cell_Type','Cell_Type'], buildSets, {concurrency});
 
+const evaluateSet = (feedback) => {
+  return readFeedback(feedback);
+};
+
+const evaluateSets = (feedbacks) => {
+  return Promise.map(feedbacks, evaluateSet, {
+    concurrency
+  });
+};
 
 
 load_data()
@@ -163,6 +171,8 @@ load_data()
       .then(bootstrapAll)
       .then(info('Bootstrap Complete'))
       .then(buildSetsAll)
+      .then(info('Sets Built'))
+      .then(evaluateSets)
   })
   .then(x => {
     const wallTime = moment.duration(moment().diff(start))

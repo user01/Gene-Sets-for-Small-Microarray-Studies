@@ -50,7 +50,23 @@ const readTypes = (typesFile) => {
         R.map(R.nth(1)),
         R.uniq
       )(elms);
-      return { General_Cell_Type, Cell_Type };
+      return {
+        General_Cell_Type,
+        Cell_Type
+      };
+    });
+};
+
+const readFeedback = (feedbackFile) => {
+  return readTsv(feedbackFile)
+    .then(feedbacks => {
+      const keys = R.head(feedbacks);
+      const set_values = R.pipe(
+        R.tail,
+        R.map(R.zipObj(keys))
+      )(feedbacks);
+      console.log(set_values);
+      return feedbacks;
     });
 };
 
@@ -180,7 +196,7 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
     if (ms < 50) return '';
     return Math.round(ms / 1000);
   }
-  const logTarget = (color, response='', info='', err = false) => {
+  const logTarget = (color, response = '', info = '', err = false) => {
     const header = R.pipe(
       R.filter(s => s.length > 0),
       R.join(' ')
@@ -202,7 +218,7 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
       return cmd(bin, args);
     })
     .then(x => {
-      if (elapsed() != ''){
+      if (elapsed() != '') {
         logTarget(chalk.green, 'COMPLETED', `${elapsed()} seconds`);
       }
     })
@@ -222,9 +238,10 @@ module.exports = {
   taskArgsToNew,
   fsAccess,
   readTypes,
+  readFeedback,
   cmd,
   make,
-  z: (s) => pad(5, s+'', '0'),
+  z: (s) => pad(5, s + '', '0'),
   res,
   data: (filename) => path.join('data', filename),
   info: i => {
