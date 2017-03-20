@@ -72,6 +72,7 @@ paired_scores = score_data.assign(weighted_score=score_data.frequency * score_da
 
 
 def set_values(paired_scores, min_size, max_size, head_size):
+    """For top head_size paired scores, generate sets that conform to min/max"""
     values = paired_scores.head(head_size)
     scores = values.weighted_score
     current_sets = list(filter(lambda gene_set: len(gene_set) >= min_size and
@@ -91,14 +92,24 @@ def set_values(paired_scores, min_size, max_size, head_size):
 
     return feedback_frames, current_sets
 
+def unique_sets(existing_sets, dfs, new_sets):
+    sets_confirmed = []
+    dfs_confirmed = []
+    for gene_set, df in zip(new_sets, dfs):
+        if gene_set not in existing_sets:
+            sets_confirmed.append(gene_set)
+            dfs_confirmed.append(df)
+    return dfs_confirmed, sets_confirmed
 
 all_sets = []
 all_dfs = []
 head_sizes = list(np.arange(paired_scores.shape[0] // args.low)
                   * args.low + args.low)
+# For each given step, generate sets. If unique, add them to the list
 for head_size in head_sizes:
     df, gene_sets = set_values(
         paired_scores, args.low, args.high, head_size)
+    df, gene_sets = unique_sets(all_sets, df, gene_sets)
     if len(gene_sets) < 1:
         continue
     all_dfs = all_dfs + df
