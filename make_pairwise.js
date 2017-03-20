@@ -116,7 +116,7 @@ const bootstrapAll = (tasks) => Promise.map(tasks, bootstrap, {
 
 const buildSets = (task) => {
   const path_output = res('');
-  const path_feedback = res(`set.feedback.${task.type}.${task.name}.tsv`);
+  const path_feedback = res(`set.feedback.${task.type}.${task.name.replace(' ','_')}.tsv`);
 
   const args = [
     'pairwise_buildsets.py',
