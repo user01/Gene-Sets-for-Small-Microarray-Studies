@@ -16,8 +16,6 @@ import pandas as pd
 
 parser = argparse.ArgumentParser(
     description='Build gene sets from scores')
-parser.add_argument('--seed', type=int, default=451,
-                    help='Random seed for operation')
 parser.add_argument('--low', type=int, default=15,
                     help='Smallest allowable size of gene set')
 parser.add_argument('--high', type=int, default=200,
