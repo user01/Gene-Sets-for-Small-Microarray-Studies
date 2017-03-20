@@ -2,6 +2,11 @@ import argparse
 import math
 import glob
 import os
+import sys
+
+# Note that python doesn't support tail call optimization, so the recursive
+#  calls for set creation should be optimized for a loop
+sys.setrecursionlimit(200000)
 
 from itertools import combinations
 from functools import reduce
@@ -47,8 +52,6 @@ args = parser.parse_args(([
 # Important since some names have spaces
 cell_name = args.name.replace('"', '').replace(' ', '_')
 
-args.type
-
 root_filename = 'score.*.{}.{}.tsv'.format(args.type, cell_name)
 root_glob = os.path.join('results', root_filename)
 score_paths = glob.glob(root_glob)
@@ -58,8 +61,12 @@ def rbind(df_a, df_b):
     return pd.DataFrame.append(df_a, df_b) \
         .reset_index(drop=True)
 
+
+def rbind_all(lst):
+    return reduce(rbind, lst)
+
 score_files = map(pd.read_table, score_paths)
-score_data = reduce(rbind, score_files)
+score_data = rbind_all(score_files)
 
 
 paired_scores = score_data.assign(weighted_score=score_data.frequency * score_data.score) \
@@ -67,18 +74,6 @@ paired_scores = score_data.assign(weighted_score=score_data.frequency * score_da
     .agg({'weighted_score': 'sum'}) \
     .sort_values('weighted_score', ascending=False) \
     .reset_index(drop=True)
-
-set_minimal = paired_scores.head(args.low)
-set_maximal = paired_scores.head(args.high)
-
-# set_maximal.shape
-# set_minimal.shape
-
-set_range = set_maximal.shape[0] - set_minimal.shape[0]
-
-set_step = set_range // args.count
-set_step = set_step if set_step > 0 else 1  # ensure reasonable step size
-head_sizes = list(np.arange(args.count) * set_step + args.low)
 
 
 def set_contained_in_sets(pair, gene_sets):
@@ -152,49 +147,46 @@ def pairs_to_sets_(pairs, gene_sets):
     pairs_tail = pairs.tail(-1)
     return pairs_to_sets_(pairs_tail, gene_sets)
 
-#
-# temp_values = set_minimal.drop(['weighted_score'], axis=1)
-# set_minimal[['low', 'high']]
-#
-# pairs_to_sets(temp_values)
-#
-# tt = pd.DataFrame({"low": ['a', 'b', 'c'], 'high': ['b', 'd', 'g']})
-#
-# pairs_to_sets(tt)
-#
-# head_sizes
-# len(head_sizes)
 
-
-def set_values(paired_scores, min_size, head_size):
+def set_values(paired_scores, min_size, max_size, head_size):
     values = paired_scores.head(head_size)
     scores = values.weighted_score
-    current_sets = list(filter(lambda gene_set: len(gene_set) >= min_size, pairs_to_sets(values)))
+    current_sets = list(filter(lambda gene_set: len(gene_set) >= min_size and
+                               len(gene_set) <= max_size,
+                               pairs_to_sets(values)))
+    count = len(current_sets)
+    current_lengths = list(map(lambda s: len(s), current_sets))
+    size_avg = np.mean(current_lengths) if len(
+        current_lengths) > 0 else 0
 
     feedback_frame = pd.DataFrame({
-        'size': [head_size],
-        'count': [len(current_sets)],
+        'genes_selected': [head_size],
+        'count': [count],
+        'size_avg': [size_avg],
         'score_max': [np.max(scores)],
         'score_min': [np.min(scores)],
         'score_avg': [np.mean(scores)],
         'score_std': [np.std(scores)]
     })
 
-    return feedback_frame, current_sets
+    return feedback_frame, count, current_sets
 
-results = map(lambda head_size: set_values(paired_scores, args.low, head_size),
-              head_sizes)
-
-list(results)
 
 all_sets = []
+all_dfs = []
+head_sizes = list(np.arange(steps) * args.low + args.low)
 for head_size in head_sizes:
-    current_cutoff = paired_scores.head(head_size)
-    current_sets = pairs_to_sets(current_cutoff)
-    all_sets = all_sets + current_sets
+    df, count, gene_sets = set_values(
+        paired_scores, args.low, args.high, head_size)
+    if count < 1:
+        continue
+    all_dfs = all_dfs + [df]
+    all_sets = all_sets + gene_sets
+    if len(all_sets) > args.count:
+        break
 
 
-pairs_to_sets(temp_values)
+
 
 
 ""
