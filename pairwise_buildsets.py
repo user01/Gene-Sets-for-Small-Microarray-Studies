@@ -35,17 +35,17 @@ parser.add_argument('--output', type=str, required=True,
 parser.add_argument('--feedback', type=str, required=True,
                     help='Path to feedback file (list of created sets)')
 
-# args = parser.parse_args()
-args = parser.parse_args(([
-    '--low', '16',
-    '--high', '100',
-    '--input', 'results',
-    '--seed', '0',
-    '--type', 'General_Cell_Type',
-    '--name', '"Monocyte"',
-    '--output', 'results',
-    '--feedback', 'results/feedback.sets.tsv'
-]))
+args = parser.parse_args()
+# args = parser.parse_args(([
+#     '--low', '16',
+#     '--high', '100',
+#     '--input', 'results',
+#     '--seed', '0',
+#     '--type', 'General_Cell_Type',
+#     '--name', '"Monocyte"',
+#     '--output', 'results',
+#     '--feedback', 'results/feedback.sets.tsv'
+# ]))
 
 # Important since some names have spaces
 cell_name = args.name.replace('"', '').replace(' ', '_')
