@@ -154,39 +154,44 @@ def set_values(paired_scores, min_size, max_size, head_size):
     current_sets = list(filter(lambda gene_set: len(gene_set) >= min_size and
                                len(gene_set) <= max_size,
                                pairs_to_sets(values)))
-    count = len(current_sets)
-    current_lengths = list(map(lambda s: len(s), current_sets))
-    size_avg = np.mean(current_lengths) if len(
-        current_lengths) > 0 else 0
 
-    feedback_frame = pd.DataFrame({
-        'genes_selected': [head_size],
-        'count': [count],
-        'size_avg': [size_avg],
-        'score_max': [np.max(scores)],
-        'score_min': [np.min(scores)],
-        'score_avg': [np.mean(scores)],
-        'score_std': [np.std(scores)]
-    })
+    feedback_frames = []
+    for gene_set in current_sets:
+        feedback_frames.append(pd.DataFrame({
+            'genes_considered': [head_size],
+            'genes_in_set': [len(gene_set)],
+            'score_max': [np.max(scores)],
+            'score_min': [np.min(scores)],
+            'score_avg': [np.mean(scores)],
+            'score_std': [np.std(scores)]
+        }))
 
-    return feedback_frame, count, current_sets
+    return feedback_frames, current_sets
 
 
 all_sets = []
 all_dfs = []
 head_sizes = list(np.arange(steps) * args.low + args.low)
 for head_size in head_sizes:
-    df, count, gene_sets = set_values(
+    df, gene_sets = set_values(
         paired_scores, args.low, args.high, head_size)
-    if count < 1:
+    if len(gene_sets) < 1:
         continue
-    all_dfs = all_dfs + [df]
+    all_dfs = all_dfs + df
     all_sets = all_sets + gene_sets
     if len(all_sets) > args.count:
         break
 
+feedback = rbind_all(all_dfs)
+feedback.index.name = 'index'
+feedback.to_csv(args.feedback, sep='\t',
+                encoding='utf-8')
 
 
-
-
-""
+for idx, gene_set in enumerate(all_sets):
+    frame = pd.DataFrame({'gene': list(gene_set)})
+    filename = 'set.{}.{}.{:05d}.tsv'.format(
+        args.type, cell_name, idx)
+    path = os.path.join(args.output, filename)
+    frame.to_csv(path, sep='\t',
+                 encoding='utf-8', index=False)
