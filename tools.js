@@ -62,8 +62,70 @@ const feedbackToTask = (feedback) => {
   return {
     feedback,
     input: res(`set.data.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`),
-    output: res(`set.data.__.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`)
+    output: res(`set.results.*.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`),
+    mid: res(`set.mid.*.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`)
   };
+};
+
+
+const feedbackResults = (feedbackChunk) => {
+  return hardCodeTsne(feedbackChunk)
+    .then(hardCodeRandomForest)
+    .then(hardCodeEM);
+}
+const hardCodeTsne = (feedbackChunk) => {
+  const inputPath = feedbackChunk.input;
+  console.log(feedbackChunk);
+  const dimReduction = feedbackChunk.mid.replace('*', 'tsne');
+  return make(
+    dimReduction, 'Rscript', [
+      'dimreduction_tsne.R',
+      '--perplexity',
+      '20',
+      '--pca',
+      'false',
+      '--input',
+      inputPath,
+      '--output',
+      dimReduction
+    ]
+  ).then(x => R.merge(feedbackChunk, {
+    dimReduction
+  }));
+};
+const hardCodeRandomForest = (feedbackChunk) => {
+  const inputPath = feedbackChunk.dimReduction;
+  const resultsPath = feedbackChunk.results.replace('*', 'RandomForest');
+  return make(
+    resultsPath, 'Rscript', [
+      'cluster_randomforest.R',
+      '--trees',
+      '128',
+      '--input',
+      inputPath,
+      '--output',
+      resultsPath
+    ]
+  ).then(x => R.merge(feedbackChunk, {
+    results: R.append(resultsPath, feedbackChunk.results ? feedbackChunk.results : [])
+  }));
+};
+const hardCodeEM = (feedbackChunk) => {
+  const inputPath = feedbackChunk.dimReduction;
+  const resultsPath = feedbackChunk.results.replace('*', 'EM');
+  return make(
+    resultsPath, 'Rscript', [
+      'cluster_em.R',
+      '--clusters',
+      '14',
+      '--input',
+      inputPath,
+      '--output',
+      resultsPath
+    ]
+  ).then(x => R.merge(feedbackChunk, {
+    results: R.append(resultsPath, feedbackChunk.results ? feedbackChunk.results : [])
+  }));
 };
 
 const readFeedback = (feedbackFile) => {
@@ -75,6 +137,9 @@ const readFeedback = (feedbackFile) => {
         R.map(R.zipObj(keys)),
         R.map(feedbackToTask)
       )(feedbacks);
+    })
+    .map(feedbackResults, {
+      concurrency: 1
     });
 };
 

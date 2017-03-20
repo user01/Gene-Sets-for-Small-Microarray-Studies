@@ -107,7 +107,7 @@ const bootstrap = (task) => {
       task_done++
     })
     .then(x => task);
-}
+};
 
 const bootstrapAll = (tasks) => Promise.map(tasks, bootstrap, {
   concurrency
@@ -141,17 +141,20 @@ const buildSets = (task) => {
   ];
   return make(path_feedback, 'python', args)
     .then(x => path_feedback);
-}
+};
 const buildSetsAll = (tasks) => {
   const tasks_without_bootstrap = R.uniqBy(o => `${o.type}-${o.name}`, tasks);
+  // TODO: Remove this size limiter
   return Promise.map(R.take(5, tasks_without_bootstrap), buildSets, {
     concurrency
   });
-}
+};
 
 const evaluateSet = (feedback) => {
   return readFeedback(feedback)
-    .map(feedback_chunk => console.log(feedback_chunk));
+    .map(feedback_chunk => console.log(feedback_chunk), {
+      concurrency: 1
+    });
 };
 
 const evaluateSets = (feedbacks) => {
