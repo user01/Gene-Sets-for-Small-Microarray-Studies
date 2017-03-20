@@ -1,4 +1,4 @@
-const concurrency = 6;
+const concurrency = 1;
 const bootstraps = 100;
 
 // Import Libraries
@@ -39,10 +39,12 @@ const noteMs = (ms) => {
 // Pre-process main data
 const load_data = () => {
   return Promise.all([
-    make(res('gene_data_vs_cell_type.tsv'), 'Rscript', ['load_data.R'], noteRun, noteMs),
-    readTypes(data('Gautier_Immgen_Sample_Metadata.tsv'))
-  ], {concurrency})
-  .then(R.nth(1));
+      make(res('gene_data_vs_cell_type.tsv'), 'Rscript', ['load_data.R'], noteRun, noteMs),
+      readTypes(data('Gautier_Immgen_Sample_Metadata.tsv'))
+    ], {
+      concurrency
+    })
+    .then(R.nth(1));
 };
 
 const celltypes_to_tasks = (celltypes) => {
@@ -51,7 +53,13 @@ const celltypes_to_tasks = (celltypes) => {
     return R.pipe(
       R.prop(type),
       R.xprod(R.range(0, bootstraps)),
-      R.map(([bootstrap, name]) => { return {type, name, bootstrap}; })
+      R.map(([bootstrap, name]) => {
+        return {
+          type,
+          name,
+          bootstrap
+        };
+      })
     )(celltypes);
   };
   const tasks = R.concat(
@@ -94,28 +102,52 @@ const bootstrap = (task) => {
       noteRun,
       noteMs,
       `Task: ${task_done}/${task_count} ${Math.floor(100 * task_done/task_count)}%`)
-    .then(x => { task_done++ })
+    .then(x => {
+      task_done++
+    })
     .then(x => task);
 }
 
-const bootstrapAll = (tasks) => Promise.map(tasks, bootstrap, {concurrency});
+const bootstrapAll = (tasks) => Promise.map(tasks, bootstrap, {
+  concurrency
+});
 
 
-const buildSets = (type) => {
-  const path_output = res(`sets_${type}.gmt`);
-  const pattern = `score\\.\\\\d+\\.${type}\\..+tsv`;
+const buildSets = (task) => {
+  const path_output = res('');
+  const path_feedback = res(`set.feedback.${task.type}.${task.name}.tsv`);
+
   const args = [
-    'pairwise_buildsets.R',
-    '--scorespath',
-    'results',
-    '--scorespattern',
-    pattern,
+    'pairwise_buildsets.py',
+    '--low',
+    '15',
+    '--high',
+    '200',
+    '--count',
+    '10',
+    '--type',
+    task.type,
+    '--name',
+    `"${task.name}"`,
+    '--raw',
+    res('gene_data_vs_cell_type.tsv'),
+    '--input',
+    path_output,
     '--output',
-    path_output
+    path_output,
+    '--feedback',
+    path_feedback
   ];
-  return make(path_output, 'Rscript', args);
+  return make(path_feedback, 'python', args)
+    .then(x => path_feedback);
 }
-const buildSetsAll = () => Promise.map(['General_Cell_Type'], buildSets, {concurrency});
+const buildSetsAll = (tasks) => {
+  const tasks_without_bootstrap = R.uniqBy(o => `${o.type}-${o.name}`, tasks);
+  // console.log(tasks_without_bootstrap);
+  return Promise.map(tasks_without_bootstrap, buildSets, {
+    concurrency
+  });
+}
 // const buildSetsAll = () => Promise.map(['General_Cell_Type','Cell_Type'], buildSets, {concurrency});
 
 
@@ -130,7 +162,7 @@ load_data()
       })
       .then(bootstrapAll)
       .then(info('Bootstrap Complete'))
-      .then(x => buildSetsAll())
+      .then(buildSetsAll)
   })
   .then(x => {
     const wallTime = moment.duration(moment().diff(start))
