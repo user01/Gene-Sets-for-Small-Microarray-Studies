@@ -13,6 +13,8 @@ from functools import reduce
 import numpy as np
 import pandas as pd
 
+from utilities.common import rbind_all
+
 
 parser = argparse.ArgumentParser(
     description='Build gene sets from scores')
@@ -58,14 +60,6 @@ root_filename = 'score.*.{}.{}.tsv'.format(args.type, cell_name)
 root_glob = os.path.join('results', root_filename)
 score_paths = glob.glob(root_glob)
 
-
-def rbind(df_a, df_b):
-    return pd.DataFrame.append(df_a, df_b) \
-        .reset_index(drop=True)
-
-
-def rbind_all(lst):
-    return reduce(rbind, lst)
 
 score_files = map(pd.read_table, score_paths)
 score_data = rbind_all(score_files)
@@ -204,6 +198,7 @@ for idx, gene_set in enumerate(all_sets):
     filename_data = 'set.data.{}.{}.{:05d}.tsv'.format(
         args.type, cell_name, idx)
     path_data = os.path.join(args.output, filename_data)
-    frame_data = raw_data[gene_set_lst + ['GSM_ID', 'Cell_Type', 'General_Cell_Type']]
+    frame_data = raw_data[gene_set_lst +
+                          ['GSM_ID', 'Cell_Type', 'General_Cell_Type']]
     frame_data.to_csv(path_data, sep='\t',
                       encoding='utf-8', index=False)
