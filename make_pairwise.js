@@ -65,7 +65,8 @@ const celltypes_to_tasks = (celltypes) => {
   };
   const tasks = R.concat(
     types_to_tasks('General_Cell_Type'),
-    // types_to_tasks('Cell_Type')
+    // TODO: Uncomment this to enable operations for cell types (x5 as long)
+    // types_to_tasks('Cell_Type'),
     []
   );
   return Promise.resolve(tasks);
@@ -144,8 +145,7 @@ const buildSets = (task) => {
 };
 const buildSetsAll = (tasks) => {
   const tasks_without_bootstrap = R.uniqBy(o => `${o.type}-${o.name}`, tasks);
-  // TODO: Remove this size limiter
-  return Promise.map(R.take(5, tasks_without_bootstrap), buildSets, {
+  return Promise.map(tasks_without_bootstrap, buildSets, {
     concurrency
   });
 };
@@ -157,6 +157,25 @@ const evaluateSets = (feedbacks) => {
   });
 };
 
+
+const readSets = () => {
+  const path_sets = res('sets.gmt');
+  const args = [
+    'read_pairwise.py',
+    '--raw',
+    res('gene_data_vs_cell_type.tsv'),
+    '--input',
+    res(''),
+    '--outputfull',
+    res('sets.full.tsv'),
+    '--outputleader',
+    res('sets.leaders.tsv'),
+    '--outputsets',
+    path_sets
+  ];
+  return make(path_sets, 'python', args)
+    .then(x => path_sets);
+};
 
 load_data()
   .then(info('Data Loaded'))
@@ -171,6 +190,9 @@ load_data()
       .then(buildSetsAll)
       .then(info('Sets Built'))
       .then(evaluateSets)
+      .then(info('Sets Evaluated'))
+      .then(readSets)
+      .then(info('Complete'))
   })
   .then(x => {
     const wallTime = moment.duration(moment().diff(start))
