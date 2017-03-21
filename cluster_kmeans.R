@@ -154,7 +154,7 @@ results_str <- function(truth, predicted) {
 }
 gct_res <- results_str(data_results$General_Cell_Type, data_results$General_Cell_Type_Predicted)
 ct_res <- results_str(data_results$Cell_Type, data_results$Cell_Type_Predicted)
-paste0("For ", name," with ", clusters,
+paste0("For ", input_path, " with ", clusters,
        " clusters, General Cell Type success was ", gct_res,
        " and Cell Type was ", ct_res, ".") %>%
        print()
