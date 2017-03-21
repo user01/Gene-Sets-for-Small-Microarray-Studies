@@ -63,13 +63,15 @@ def interpret_results(df, cell_group, cell_name):
 
     # True Negative / (True Negative + False Positive)
     df_specificity = df_rated.query(
-        'truth == "{}"'.format(cell_name.replace('_', ' ')))
-    specificity = np.sum(df_specificity.correct) / \
+        'truth != "{}"'.format(cell_name.replace('_', ' ')))
+    df_specificity = df_specificity.assign(truenegative = df_specificity.predicted != cell_name)
+    specificity = np.sum(df_specificity.truenegative) / \
         df_specificity.shape[0]
 
     return pd.DataFrame({'group': [cell_group], 'name': [cell_name],
                          'accuracy': [accuracy], 'sensitivity': [sensitivity],
-                         'set_score': [accuracy * sensitivity]})
+                         'specificity': [specificity],
+                         'set_score': [specificity + 2 * sensitivity]})
 
 
 info_regex = re.compile('.+set.results.\w+.\w+.(\d+).(.\w+).tsv')
