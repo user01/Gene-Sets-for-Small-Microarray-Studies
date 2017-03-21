@@ -4,6 +4,7 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.preprocessing import StandardScaler
 
 
 parser = argparse.ArgumentParser(description='Perform LDA')
@@ -59,12 +60,16 @@ def lda_model(data):
     X_train = data.drop(['truth'], axis=1).as_matrix()
     y_train = data[['truth']].as_matrix().T[0]
 
+    scaler = StandardScaler()
+    scaler.fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+
     clf = LinearDiscriminantAnalysis()
-    clf.fit(X_train, y_train)
-    return clf
+    clf.fit(X_train_scaled, y_train)
+    return clf, scaler
 
 
-lda_model_main = lda_model(data_03)
+lda_model_main, _ = lda_model(data_03)
 top_genes = math.floor(1 / 2 * (math.sqrt(8 * args.pairs + 1) + 1))
 
 top_gene_names = pd.DataFrame({
@@ -88,8 +93,10 @@ def keep_one(df, idx):
 def leave_one_out(df, idx):
     data_train = ignore_one(df, idx)
     data_test = keep_one(df, idx)
-    clf = lda_model(data_train)
-    X_test = data_test.drop(['truth'], axis=1).as_matrix()
+    clf, scaler = lda_model(data_train)
+
+    X_test = scaler.transform(
+        data_test.drop(['truth'], axis=1))
     y_test = data_test[['truth']].as_matrix().T[0]
     result = clf.predict(X_test)
     return result[0] == y_test[0]
