@@ -9,7 +9,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from utilities.common import rbind_all
+from utilities.common import rbind_all, rbind
 
 
 parser = argparse.ArgumentParser(
@@ -19,19 +19,33 @@ parser.add_argument('--raw', type=str, required=True,
                     help='Path to raw gene data')
 parser.add_argument('--input', type=str, required=True,
                     help='Path to input set files')
+parser.add_argument('--outputfull', type=str, required=True,
+                    help='Path to output full results of each set')
+parser.add_argument('--outputleader', type=str, required=True,
+                    help='Path to output leader results of each set')
+parser.add_argument('--outputsets', type=str, required=True,
+                    help='Path to output gmt of sets')
+
 
 # args = parser.parse_args()
 args = parser.parse_args(([
     '--input', 'results',
-    '--raw', 'results/gene_data_vs_cell_type.tsv'
+    '--raw', 'results/gene_data_vs_cell_type.tsv',
+    '--outputfull', 'results/set.full.tsv',
+    '--outputleader', 'results/set.leader.tsv',
+    '--outputsets', 'results/sets.gmt'
 ]))
 
 
 raw_data = pd.read_table(args.raw)
 
-cell_types = list(np.unique(raw_data.Cell_Type))
-general_cell_types = list(map(lambda s: s.replace(' ', '_'),
-                              list(np.unique(raw_data.General_Cell_Type))))
+
+def fix_name_spaces(arr):
+    return list(map(lambda s: s.replace(' ', '_'),
+                    list(np.unique(arr))))
+
+cell_names = fix_name_spaces(raw_data.Cell_Type)
+general_cell_names = fix_name_spaces(raw_data.General_Cell_Type)
 
 
 def interpret_results(df, cell_group, cell_name):
@@ -42,9 +56,17 @@ def interpret_results(df, cell_group, cell_name):
     df_rated = df_fixed.assign(
         correct=df_fixed.truth == df_fixed.predicted)
     accuracy = np.sum(df_rated.correct) / df_fixed.shape[0]
-    df_sensitivity = df_rated.query('truth == "{}"'.format(cell_name))
+    df_sensitivity = df_rated.query(
+        'truth == "{}"'.format(cell_name.replace('_', ' ')))
     sensitivity = np.sum(df_sensitivity.correct) / \
         df_sensitivity.shape[0]
+
+    # True Negative / (True Negative + False Positive)
+    df_specificity = df_rated.query(
+        'truth == "{}"'.format(cell_name.replace('_', ' ')))
+    specificity = np.sum(df_specificity.correct) / \
+        df_specificity.shape[0]
+
     return pd.DataFrame({'group': [cell_group], 'name': [cell_name],
                          'accuracy': [accuracy], 'sensitivity': [sensitivity],
                          'set_score': [accuracy * sensitivity]})
@@ -71,6 +93,8 @@ def read_feedback(cell_group, cell_name):
     feedback_file = 'set.feedback.{}.{}.tsv'.format(
         cell_group, cell_name)
     feedback_path = os.path.join(args.input, feedback_file)
+    if not os.path.isfile(feedback_path):
+        return None
     feedback = pd.read_table(feedback_path).rename(
         columns={'index': 'set_id'})
 
@@ -91,10 +115,26 @@ def read_feedback(cell_group, cell_name):
         .sort_values('set_score', ascending=False) \
         .reset_index(drop=True)
 
-for cell_name in general_cell_types[4:5]:
-    pp = read_feedback('General_Cell_Type', cell_name)
-    break
+
+def read_types(cell_type, cell_names):
+    dfs_full = []
+    dfs_leader = []
+    for cell_name in cell_names:
+        df = read_feedback(cell_type, cell_name)
+        if df is None:
+            continue
+        dfs_full.append(df)
+        dfs_leader.append(df.iloc[0:1])
+    return dfs_full, dfs_leader
 
 
+df_general_full, df_general_leader = read_types(
+    'General_Cell_Type', general_cell_names)
+df_cell_full, df_cell_leader = read_types('Cell_Type', cell_names)
 
-pp.iloc[0:1]
+df_full = rbind_all(df_general_full + df_cell_full)
+df_leader = rbind_all(df_general_leader + df_cell_leader)
+
+
+df_full.to_csv(args.outputfull, sep='\t', encoding='utf-8')
+df_leader.to_csv(args.outputleader, sep='\t', encoding='utf-8')
