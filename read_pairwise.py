@@ -27,14 +27,14 @@ parser.add_argument('--outputsets', type=str, required=True,
                     help='Path to output gmt of sets')
 
 
-# args = parser.parse_args()
-args = parser.parse_args(([
-    '--input', 'results',
-    '--raw', 'results/gene_data_vs_cell_type.tsv',
-    '--outputfull', 'results/set.full.tsv',
-    '--outputleader', 'results/set.leader.tsv',
-    '--outputsets', 'results/sets.gmt'
-]))
+args = parser.parse_args()
+# args = parser.parse_args(([
+#     '--input', 'results',
+#     '--raw', 'results/gene_data_vs_cell_type.tsv',
+#     '--outputfull', 'results/set.full.tsv',
+#     '--outputleader', 'results/set.leader.tsv',
+#     '--outputsets', 'results/sets.gmt'
+# ]))
 
 
 raw_data = pd.read_table(args.raw)
@@ -138,3 +138,20 @@ df_leader = rbind_all(df_general_leader + df_cell_leader)
 
 df_full.to_csv(args.outputfull, sep='\t', encoding='utf-8')
 df_leader.to_csv(args.outputleader, sep='\t', encoding='utf-8')
+
+# Write out picked sets to a final file
+lines = []
+for row in df_leader.iterrows():
+    content = row[1]
+    set_filename = 'set.{}.{}.{:05d}.tsv'.format(
+        content['group'], content['name'], content['set_id'])
+    set_path = os.path.join(args.input, set_filename)
+    set_data = '\t'.join(list(pd.read_table(set_path).gene))
+    leader = '\t'.join(
+        [content['group'], content['name'], str(content['genes_in_set'])])
+    line = '{}\t\t{}'.format(leader, set_data)
+    lines.append(line)
+
+with open(args.outputsets, 'w') as file_handler:
+    for line in lines:
+        file_handler.write("{}\n".format(line))
