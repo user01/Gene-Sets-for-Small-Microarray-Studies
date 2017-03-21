@@ -65,9 +65,7 @@ const celltypes_to_tasks = (celltypes) => {
   };
   const tasks = R.concat(
     types_to_tasks('General_Cell_Type'),
-    // TODO: Uncomment this to enable operations for cell types (x5 as long)
-    // types_to_tasks('Cell_Type'),
-    []
+    types_to_tasks('Cell_Type')
   );
   return Promise.resolve(tasks);
 };
