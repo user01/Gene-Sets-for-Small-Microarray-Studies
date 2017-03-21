@@ -171,7 +171,7 @@ const readSets = () => {
     '--outputsets',
     path_sets
   ];
-  return make(path_sets, 'python', args)
+  return make(false, 'python', args)
     .then(x => path_sets);
 };
 
