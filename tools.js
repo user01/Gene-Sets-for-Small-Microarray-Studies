@@ -16,6 +16,7 @@ const readJson = R.pipe(
   JSON.parse
 );
 const res = (filename) => path.join('results', filename);
+const z = (s) => pad(5, s + '', '0');
 
 const readTsv = (tsvFile) => {
   return new Promise(function(resolve, reject) {
@@ -50,7 +51,94 @@ const readTypes = (typesFile) => {
         R.map(R.nth(1)),
         R.uniq
       )(elms);
-      return { General_Cell_Type, Cell_Type };
+      return {
+        General_Cell_Type,
+        Cell_Type
+      };
+    });
+};
+
+const feedbackToTask = (feedback) => {
+  return {
+    feedback,
+    input: res(`set.data.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`),
+    output: res(`set.results.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.*.tsv`),
+    mid: res(`set.mid.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.*.tsv`)
+  };
+};
+
+
+const feedbackResults = (feedbackChunk) => {
+  return hardCodeTsne(feedbackChunk)
+    .then(hardCodeRandomForest)
+    .then(hardCodeEM);
+}
+const hardCodeTsne = (feedbackChunk) => {
+  const inputPath = feedbackChunk.input;
+  const dimReduction = feedbackChunk.mid.replace('*', 'tsne');
+  return make(
+    dimReduction, 'Rscript', [
+      'dimreduction_tsne.R',
+      '--perplexity',
+      '20',
+      '--pca',
+      'false',
+      '--input',
+      inputPath,
+      '--output',
+      dimReduction
+    ]
+  ).then(x => R.merge(feedbackChunk, {
+    dimReduction
+  }));
+};
+const hardCodeRandomForest = (feedbackChunk) => {
+  const inputPath = feedbackChunk.dimReduction;
+  const resultsPath = feedbackChunk.output.replace('*', 'RandomForest');
+  return make(
+    resultsPath, 'Rscript', [
+      'cluster_randomforest.R',
+      '--trees',
+      '128',
+      '--input',
+      inputPath,
+      '--output',
+      resultsPath
+    ]
+  ).then(x => R.merge(feedbackChunk, {
+    results: R.append(resultsPath, feedbackChunk.results ? feedbackChunk.results : [])
+  }));
+};
+const hardCodeEM = (feedbackChunk) => {
+  const inputPath = feedbackChunk.dimReduction;
+  const resultsPath = feedbackChunk.output.replace('*', 'EM');
+  return make(
+    resultsPath, 'Rscript', [
+      'cluster_em.R',
+      '--clusters',
+      '14',
+      '--input',
+      inputPath,
+      '--output',
+      resultsPath
+    ]
+  ).then(x => R.merge(feedbackChunk, {
+    results: R.append(resultsPath, feedbackChunk.results ? feedbackChunk.results : [])
+  }));
+};
+
+const readFeedback = (feedbackFile) => {
+  return readTsv(feedbackFile)
+    .then(feedbacks => {
+      const keys = R.head(feedbacks);
+      return R.pipe(
+        R.tail,
+        R.map(R.zipObj(keys)),
+        R.map(feedbackToTask)
+      )(feedbacks);
+    })
+    .map(feedbackResults, {
+      concurrency: 1
     });
 };
 
@@ -180,7 +268,7 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
     if (ms < 50) return '';
     return Math.round(ms / 1000);
   }
-  const logTarget = (color, response='', info='', err = false) => {
+  const logTarget = (color, response = '', info = '', err = false) => {
     const header = R.pipe(
       R.filter(s => s.length > 0),
       R.join(' ')
@@ -202,7 +290,7 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
       return cmd(bin, args);
     })
     .then(x => {
-      if (elapsed() != ''){
+      if (elapsed() != '') {
         logTarget(chalk.green, 'COMPLETED', `${elapsed()} seconds`);
       }
     })
@@ -222,9 +310,10 @@ module.exports = {
   taskArgsToNew,
   fsAccess,
   readTypes,
+  readFeedback,
   cmd,
   make,
-  z: (s) => pad(5, s+'', '0'),
+  z,
   res,
   data: (filename) => path.join('data', filename),
   info: i => {

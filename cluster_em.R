@@ -12,6 +12,9 @@ parser <- ArgumentParser()
 parser$add_argument("-c", "--clusters", type="integer", default=8,
     help="Number of clusters to create")
 
+parser$add_argument("-p", "--plots", action="store_true",
+    dest="plots", help="Plot the results")
+
 parser$add_argument("-i", "--input", type="character",
     default=file.path("results", "results_pca.tsv"),
     help="Name of dimension reduced data set. Used to locate input TSV file and write output TSV. Input TSV must conform to table with Cell_Type, General_Cell_Type, and any number of float fields.")
@@ -28,6 +31,8 @@ output_path <- args$output
 # output_path <- file.path("results", "results_hierarchical.tsv")
 clusters <- args$clusters
 # clusters <- 8
+plots <- args$plots
+# plots <- FALSE
 
 data_target <- input_path %>%
   read_tsv(col_types = cols(
@@ -106,7 +111,9 @@ data_range %>%
       get("General_Cell_Type",.) %>%
       get_top
 
-    if (dimensions_available == 2) {
+    print(plots)
+    print(dimensions_available)
+    if (plots && (dimensions_available == 2)) {
       # Render cluster plot
       paste0("cluster.em." , output_path , ".", clusters, "c_" ,idx ,".png") %>%
         str_replace_all(., '[^\\w_\\d]', '.')
