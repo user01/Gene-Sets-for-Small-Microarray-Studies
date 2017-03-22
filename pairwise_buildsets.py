@@ -58,7 +58,8 @@ raw_data = pd.read_table(args.raw)
 # Important since some names have spaces
 cell_name = args.name.replace('"', '').replace(' ', '_')
 
-root_filename = '{}.score.*.{}.{}.tsv'.format(args.title, args.type, cell_name)
+root_filename = '{}.score.*.{}.{}.tsv'.format(
+    args.title, args.type, cell_name)
 root_glob = os.path.join(args.input, root_filename)
 score_paths = glob.glob(root_glob)
 
@@ -122,7 +123,8 @@ for head_size in head_sizes:
         break
 
 feedback = rbind_all(all_dfs)
-feedback = feedback.assign(cell_type=args.type, cell_name=cell_name)
+feedback = feedback.assign(
+    cell_type=args.type, cell_name=cell_name, title=args.title)
 feedback.index.name = 'index'
 feedback.to_csv(args.feedback, sep='\t',
                 encoding='utf-8')

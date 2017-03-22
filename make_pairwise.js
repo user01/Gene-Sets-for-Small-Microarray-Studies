@@ -166,6 +166,8 @@ const run_lda_bootstrap = (title, bootstraps) => {
       'read_pairwise.py',
       '--raw',
       res('gene_data_vs_cell_type.tsv'),
+      '--title',
+      title,
       '--input',
       res(''),
       '--outputfull',
