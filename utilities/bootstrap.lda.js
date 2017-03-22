@@ -17,7 +17,11 @@ const {
   info
 } = require('./tools.js');
 
-const run_lda_bootstrap = (title, bootstraps, concurrency, test_specific_cells = false) => {
+const run_lda_bootstrap = (title,
+                           bootstraps,
+                           fraction = 0.66,
+                           concurrency = 1,
+                           test_specific_cells = false) => {
 
   const results_directory = path.join(results, title);
 
@@ -100,6 +104,8 @@ const run_lda_bootstrap = (title, bootstraps, concurrency, test_specific_cells =
       res('gene_data_vs_cell_type.tsv'),
       '--seed',
       task.bootstrap,
+      '--bootstrap',
+      `${fraction}`,
       '--type',
       task.type,
       '--name',
