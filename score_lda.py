@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.preprocessing import StandardScaler
 
+from utilities.common import score_method
 
 parser = argparse.ArgumentParser(description='Perform LDA')
 parser.add_argument('--seed', type=int, default=451,
@@ -19,6 +20,9 @@ parser.add_argument('--name', type=str, required=True,
 parser.add_argument('--type', type=str, required=True,
                     help='General or specific cell type')
 
+parser.add_argument('--score', type=str, default='fmeasure',
+                    help='Scoring method. [accuracy, precision, recall, fmeasure]')
+
 parser.add_argument('--input', type=str, required=True,
                     help='Path to input data')
 parser.add_argument('--output', type=str, required=True,
@@ -31,6 +35,7 @@ args = parser.parse_args()
 #     '--seed', '0',
 #     '--type', 'General_Cell_Type',
 #     '--name', '"Monocyte"',
+#     '--score', 'recall',
 #     '--output', 'results/score.00000.General_Cell_Type.Monocyte.tsv'
 # ]))
 
@@ -99,15 +104,16 @@ def leave_one_out(df, idx):
         data_test.drop(['truth'], axis=1))
     y_test = data_test[['truth']].as_matrix().T[0]
     result = clf.predict(X_test)
-    return result[0] == y_test[0]
+    return np.array([result[0], y_test[0]])
 
 
 def run(data):
-    return list(map(lambda idx: leave_one_out(data, idx),
-                    range(0, data.shape[0])))
+    return np.array(list(map(lambda idx: leave_one_out(data, idx),
+                             range(0, data.shape[0]))))
 
 results = run(data_03)
-score = np.sum(results) / len(results)
+score = score_method(pd.DataFrame(
+    results, columns=['predicted', 'truth']), cell_name, args.score)
 
 
 gene_pairs = np.array(list(combinations(np.sort(
