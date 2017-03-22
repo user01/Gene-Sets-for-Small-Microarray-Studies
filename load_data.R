@@ -1,11 +1,34 @@
 suppressPackageStartupMessages({
   library(readr)
   library(dplyr)
+  library(argparse)
 })
 
+parser <- ArgumentParser()
 
-"Gautier_Immgen_Norm_Data.tsv" %>%
-  file.path("data", .) %>%
+parser$add_argument("-n", "--inputnormal", type="character",
+    default=file.path("data", "Gautier_Immgen_Norm_Data.tsv"),
+    help="Path to input normal data")
+
+parser$add_argument("-m", "--inputmeta", type="character",
+    default=file.path("data", "Gautier_Immgen_Sample_Metadata.tsv"),
+    help="Path to input meta data")
+
+parser$add_argument("-o", "--output", type="character",
+    default=file.path("results", "gene_data_vs_cell_type.tsv"),
+    help="Path to output gentic data")
+
+args <- parser$parse_args()
+
+inputnormal_path <- args$inputnormal
+# inputnormal_path <- file.path("data", "Gautier_Immgen_Norm_Data.tsv")
+inputmeta_path <- args$inputmeta
+# inputmeta_path <- file.path("data", "Gautier_Immgen_Sample_Metadata.tsv")
+output_path <- args$output
+# output_path <- file.path("results", "gene_data_vs_cell_type.tsv")
+
+
+inputnormal_path %>%
   read_tsv(
     col_types = cols(
       Ensembl = col_character(),
@@ -19,8 +42,7 @@ Gautier_Immgen_Norm_Data %>%
   c(., "GSM_ID", "Cell_Type", "General_Cell_Type")->
   gene_names
 
-"Gautier_Immgen_Sample_Metadata.tsv" %>%
-  file.path("data", .) %>%
+inputmeta_path %>%
   read_tsv(col_types = cols(
       GSM_ID = col_character(),
       Cell_Type = col_character(),
@@ -37,4 +59,4 @@ Gautier_Immgen_Norm_Data %>%
   `colnames<-`(gene_names) ->
   gene_data_vs_cell_type
 
-write_tsv(gene_data_vs_cell_type, file.path("results", "gene_data_vs_cell_type.tsv"))
+write_tsv(gene_data_vs_cell_type, output_path)

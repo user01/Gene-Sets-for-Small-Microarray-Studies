@@ -61,9 +61,9 @@ const readTypes = (typesFile) => {
 const feedbackToTask = (feedback) => {
   return {
     feedback,
-    input: res(`set.data.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`),
-    output: res(`set.results.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.*.tsv`),
-    mid: res(`set.mid.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.*.tsv`)
+    input: res(`${feedback.title}.set.data.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.tsv`),
+    output: res(`${feedback.title}.set.results.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.*.tsv`),
+    mid: res(`${feedback.title}.set.mid.${feedback.cell_type}.${feedback.cell_name}.${z(+feedback.index)}.*.tsv`)
   };
 };
 

@@ -19,6 +19,8 @@ parser.add_argument('--raw', type=str, required=True,
                     help='Path to raw gene data')
 parser.add_argument('--input', type=str, required=True,
                     help='Path to input set files')
+parser.add_argument('--title', type=str, required=True,
+                    help='Title string')
 parser.add_argument('--outputfull', type=str, required=True,
                     help='Path to output full results of each set')
 parser.add_argument('--outputleader', type=str, required=True,
@@ -30,6 +32,7 @@ parser.add_argument('--outputsets', type=str, required=True,
 args = parser.parse_args()
 # args = parser.parse_args(([
 #     '--input', 'results',
+#     '--title', 'main',
 #     '--raw', 'results/gene_data_vs_cell_type.tsv',
 #     '--outputfull', 'results/set.full.tsv',
 #     '--outputleader', 'results/set.leader.tsv',
@@ -92,16 +95,16 @@ def read_glob(current_glob, cell_group, cell_name):
 
 
 def read_feedback(cell_group, cell_name):
-    feedback_file = 'set.feedback.{}.{}.tsv'.format(
-        cell_group, cell_name)
+    feedback_file = '{}.set.feedback.{}.{}.tsv'.format(
+        args.title, cell_group, cell_name)
     feedback_path = os.path.join(args.input, feedback_file)
     if not os.path.isfile(feedback_path):
         return None
     feedback = pd.read_table(feedback_path).rename(
         columns={'index': 'set_id'})
 
-    data_paths = map(lambda idx: 'set.results.{}.{}.{:05d}.*.tsv'.format(
-        cell_group, cell_name, idx), feedback.index)
+    data_paths = map(lambda idx: '{}.set.results.{}.{}.{:05d}.*.tsv'.format(
+        args.title, cell_group, cell_name, idx), feedback.index)
     data_paths_full = map(lambda filename: os.path.join(
         args.input, filename), data_paths)
     results = rbind_all(list(map(lambda g: read_glob(
@@ -145,8 +148,8 @@ df_leader.to_csv(args.outputleader, sep='\t', encoding='utf-8')
 lines = []
 for row in df_leader.iterrows():
     content = row[1]
-    set_filename = 'set.{}.{}.{:05d}.tsv'.format(
-        content['group'], content['name'], content['set_id'])
+    set_filename = '{}.set.{}.{}.{:05d}.tsv'.format(
+        args.title, content['group'], content['name'], content['set_id'])
     set_path = os.path.join(args.input, set_filename)
     set_data = '\t'.join(list(pd.read_table(set_path).gene))
     leader = '\t'.join(
