@@ -16,9 +16,9 @@ const {
   readTypes,
   readFeedback,
   info
-} = require('./tools.js');
+} = require('./utilities/tools.js');
 
-const run_lda_bootstrap = (title, bootstraps) => {
+const run_lda_bootstrap = (title, bootstraps, concurrency, test_specific_cells = false) => {
 
   // *****************************************************************************
   // Main task functions
@@ -69,8 +69,7 @@ const run_lda_bootstrap = (title, bootstraps) => {
     };
     const tasks = R.concat(
       types_to_tasks('General_Cell_Type'),
-      // types_to_tasks('Cell_Type')
-      []
+      test_specific_cells ? types_to_tasks('Cell_Type') : []
     );
     return Promise.resolve(tasks);
   };
@@ -210,4 +209,4 @@ const run_lda_bootstrap = (title, bootstraps) => {
 }; // end of LDA bootstrap code
 
 
-run_lda_bootstrap('simple', 1)
+run_lda_bootstrap('simple', 1, concurrency)
