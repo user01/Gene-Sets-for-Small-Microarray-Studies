@@ -24,6 +24,8 @@ parser.add_argument('--high', type=int, default=200,
 parser.add_argument('--count', type=int, default=10,
                     help='Number of sets to attempt to generate')
 
+parser.add_argument('--title', type=str, required=True,
+                    help='Title string')
 parser.add_argument('--name', type=str, required=True,
                     help='Name of cell type to target')
 parser.add_argument('--type', type=str, required=True,
@@ -44,6 +46,7 @@ args = parser.parse_args()
 #     '--high', '100',
 #     '--raw', 'results/gene_data_vs_cell_type.tsv',
 #     '--input', 'results',
+#     '--title', 'main',
 #     '--type', 'General_Cell_Type',
 #     '--name', '"Monocyte"',
 #     '--output', 'results',
@@ -55,8 +58,8 @@ raw_data = pd.read_table(args.raw)
 # Important since some names have spaces
 cell_name = args.name.replace('"', '').replace(' ', '_')
 
-root_filename = 'score.*.{}.{}.tsv'.format(args.type, cell_name)
-root_glob = os.path.join('results', root_filename)
+root_filename = '{}.score.*.{}.{}.tsv'.format(args.title, args.type, cell_name)
+root_glob = os.path.join(args.input, root_filename)
 score_paths = glob.glob(root_glob)
 
 
@@ -91,6 +94,7 @@ def set_values(paired_scores, min_size, max_size, head_size):
         }))
 
     return feedback_frames, current_sets
+
 
 def unique_sets(existing_sets, dfs, new_sets):
     sets_confirmed = []
@@ -127,14 +131,14 @@ feedback.to_csv(args.feedback, sep='\t',
 for idx, gene_set in enumerate(all_sets):
     gene_set_lst = list(gene_set)
     frame = pd.DataFrame({'gene': gene_set_lst})
-    filename_set = 'set.{}.{}.{:05d}.tsv'.format(
-        args.type, cell_name, idx)
+    filename_set = '{}.set.{}.{}.{:05d}.tsv'.format(
+        args.title, args.type, cell_name, idx)
     path_set = os.path.join(args.output, filename_set)
     frame.to_csv(path_set, sep='\t',
                  encoding='utf-8', index=False)
 
-    filename_data = 'set.data.{}.{}.{:05d}.tsv'.format(
-        args.type, cell_name, idx)
+    filename_data = '{}.set.data.{}.{}.{:05d}.tsv'.format(
+        args.title, args.type, cell_name, idx)
     path_data = os.path.join(args.output, filename_data)
     frame_data = raw_data[gene_set_lst +
                           ['GSM_ID', 'Cell_Type', 'General_Cell_Type']]
