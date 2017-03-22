@@ -1,6 +1,7 @@
 
 from functools import reduce
 import pandas as pd
+import numpy as np
 
 
 def rbind(df_a, df_b):
@@ -10,6 +11,46 @@ def rbind(df_a, df_b):
 
 def rbind_all(lst):
     return reduce(rbind, lst)
+
+
+def score_method(df, target, method):
+    """Score a dataset of [predicted, truth] based on method"""
+    if (method == 'accuracy'):
+        return score_accuracy(df)
+    if (method == 'precision'):
+        return score_precision(df, target)
+    if (method == 'recall'):
+        return score_recall(df, target)
+    return score_fmeasure(df, target)
+
+
+def score_accuracy(df):
+    df_new = df.assign(correct=df.predicted == df.truth)
+    return np.sum(df_new.correct) / df_new.shape[0]
+
+
+def score_precision(df, target):
+    """TruePositive / (TruePositive + FalsePositive)"""
+    total_positive = np.sum(df.predicted == target)
+    true_positive = np.sum(np.logical_and(
+        df.predicted == df.truth, df.predicted == target))
+    return true_positive / total_positive
+
+
+def score_recall(df, target):
+    """TruePositive / (TruePositive + FalseNegative)"""
+    true_positive = np.sum(np.logical_and(
+        df.predicted == df.truth, df.predicted == target))
+    false_negative = np.sum(np.logical_and(
+        df.predicted != df.truth, df.truth == target))
+    return true_positive / (true_positive + false_negative)
+
+
+def score_fmeasure(df, target):
+    """2 * (precision * recall) / (precision + recall)"""
+    precision = score_precision(df, target)
+    recall = score_recall(df, target)
+    return 2 * (precision * recall) / (precision + recall)
 
 
 def set_contained_in_sets(pair, gene_sets):
