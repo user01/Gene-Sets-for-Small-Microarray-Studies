@@ -1,7 +1,8 @@
-
 // Import Libraries
 const R = require('ramda'),
   chalk = require('chalk'),
+  path = require('path'),
+  fs = require('fs'),
   pad = require('pad'),
   moment = require('moment'),
   Promise = require('bluebird');
@@ -10,7 +11,6 @@ const R = require('ramda'),
 const {
   make,
   z,
-  res,
   data,
   readTypes,
   readFeedback,
@@ -18,6 +18,15 @@ const {
 } = require('./tools.js');
 
 const run_lda_bootstrap = (title, bootstraps, concurrency, test_specific_cells = false) => {
+
+  const results_directory = path.join(results, title);
+
+  if (!fs.existsSync(results_directory)) {
+    fs.mkdirSync(results_directory);
+  }
+
+  //override local res to match set
+  const res = (filename) => path.join(results_directory, filename);
 
   // *****************************************************************************
   // Main task functions
@@ -42,8 +51,9 @@ const run_lda_bootstrap = (title, bootstraps, concurrency, test_specific_cells =
 
   // Pre-process main data
   const load_data = () => {
+    const output_path = res('gene_data_vs_cell_type.tsv');
     return Promise.all([
-        localMake(res('gene_data_vs_cell_type.tsv'), 'Rscript', ['load_data.R']),
+        localMake(output_path, 'Rscript', ['load_data.R', '--output', output_path]),
         readTypes(data('Gautier_Immgen_Sample_Metadata.tsv'))
       ], {
         concurrency
