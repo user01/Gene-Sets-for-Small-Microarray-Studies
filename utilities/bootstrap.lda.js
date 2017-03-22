@@ -23,7 +23,7 @@ const run_lda_bootstrap = (title,
                            concurrency = 1,
                            test_specific_cells = false) => {
 
-  const results_directory = path.join(results, title);
+  const results_directory = path.join('results', title);
 
   if (!fs.existsSync(results_directory)) {
     fs.mkdirSync(results_directory);
