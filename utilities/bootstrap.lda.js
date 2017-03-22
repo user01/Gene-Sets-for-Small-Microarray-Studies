@@ -21,6 +21,7 @@ const run_lda_bootstrap = (title,
                            bootstraps,
                            fraction = 0.66,
                            concurrency = 1,
+                           lda_score_measure = 'fmeasure',
                            test_specific_cells = false) => {
 
   const results_directory = path.join('results', title);
@@ -108,6 +109,8 @@ const run_lda_bootstrap = (title,
       `${fraction}`,
       '--type',
       task.type,
+      '--score',
+      lda_score_measure,
       '--name',
       `"${task.name}"`,
       '--output',
