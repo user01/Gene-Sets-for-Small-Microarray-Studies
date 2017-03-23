@@ -22,10 +22,13 @@ args <- parser$parse_args()
 
 inputnormal_path <- args$inputnormal
 # inputnormal_path <- file.path("data", "Gautier_Immgen_Norm_Data.tsv")
+# inputnormal_path <- file.path("data", "Amit_Norm_Counts.tsv")
 inputmeta_path <- args$inputmeta
 # inputmeta_path <- file.path("data", "Gautier_Immgen_Sample_Metadata.tsv")
+# inputmeta_path <- file.path("data", "Amit_Sample_Metadata.csv")
 output_path <- args$output
 # output_path <- file.path("results", "gene_data_vs_cell_type.tsv")
+# output_path <- file.path("results", "gene_data_vs_cell_type.validation.tsv")
 
 
 inputnormal_path %>%
@@ -35,9 +38,9 @@ inputnormal_path %>%
       .default = col_double()
     )
   ) ->
-  Gautier_Immgen_Norm_Data
+  Norm_Data
 
-Gautier_Immgen_Norm_Data %>%
+Norm_Data %>%
   get("Ensembl", .) %>%
   c(., "GSM_ID", "Cell_Type", "General_Cell_Type")->
   gene_names
@@ -49,13 +52,13 @@ inputmeta_path %>%
       General_Cell_Type = col_character()
     )
   ) ->
-  Gautier_Immgen_Sample_Metadata
+  Sample_Metadata
 
-Gautier_Immgen_Norm_Data %>%
+Norm_Data %>%
   t %>%
   as.data.frame %>%
-  mutate(GSM_ID = colnames(Gautier_Immgen_Norm_Data)) %>%
-  inner_join(Gautier_Immgen_Sample_Metadata) %>%
+  mutate(GSM_ID = colnames(Norm_Data)) %>%
+  inner_join(Sample_Metadata) %>%
   `colnames<-`(gene_names) ->
   gene_data_vs_cell_type
 
