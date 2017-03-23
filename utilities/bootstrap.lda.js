@@ -18,11 +18,11 @@ const {
 } = require('./tools.js');
 
 const run_lda_bootstrap = (title,
-                           bootstraps,
-                           fraction = 0.66,
-                           concurrency = 1,
-                           lda_score_measure = 'fmeasure',
-                           test_specific_cells = false) => {
+  bootstraps,
+  fraction = 0.66,
+  concurrency = 1,
+  lda_score_measure = 'fmeasure',
+  test_specific_cells = false) => {
 
   const results_directory = path.join('results', title);
 
@@ -57,13 +57,19 @@ const run_lda_bootstrap = (title,
   // Pre-process main data
   const load_data = () => {
     const output_path = res('gene_data_vs_cell_type.tsv');
+    const output_validation_path = res('gene_data_vs_cell_type.validation.tsv');
     return Promise.all([
         localMake(output_path, 'Rscript', ['load_data.R', '--output', output_path]),
+        localMake(output_validation_path, 'Rscript', ['load_data.R',
+          '--output', output_validation_path,
+          '--inputnormal', data('Amit_Norm_Counts.tsv'),
+          '--inputmeta', data('Amit_Sample_Metadata.tsv')
+        ]),
         readTypes(data('Gautier_Immgen_Sample_Metadata.tsv'))
       ], {
         concurrency
       })
-      .then(R.nth(1));
+      .then(R.nth(2));
   };
 
   const celltypes_to_tasks = (celltypes) => {
