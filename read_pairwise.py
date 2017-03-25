@@ -29,21 +29,21 @@ parser.add_argument('--outputsets', type=str, required=True,
                     help='Path to output gmt of sets')
 
 
-# args = parser.parse_args()
-args = parser.parse_args(([
-    '--raw',
-    'results/full/gene_data_vs_cell_type.tsv',
-    '--title',
-    'full',
-    '--input',
-    'results/full',
-    '--outputfull',
-    'results/full/full.sets.full.tsv',
-    '--outputleader',
-    'results/full/full.sets.leaders.tsv',
-    '--outputsets',
-    'results/full/full.sets.gmt'
-]))
+args = parser.parse_args()
+# args = parser.parse_args(([
+#     '--raw',
+#     'results/full/gene_data_vs_cell_type.tsv',
+#     '--title',
+#     'full',
+#     '--input',
+#     'results/full',
+#     '--outputfull',
+#     'results/full/full.sets.full.tsv',
+#     '--outputleader',
+#     'results/full/full.sets.leaders.tsv',
+#     '--outputsets',
+#     'results/full/full.sets.gmt'
+# ]))
 
 
 raw_data = pd.read_table(args.raw)
@@ -56,33 +56,6 @@ def fix_name_spaces(arr):
 
 cell_names = fix_name_spaces(raw_data.Cell_Type)
 general_cell_names = fix_name_spaces(raw_data.General_Cell_Type)
-
-
-# def interpret_results(df, cell_group, cell_name):
-#     col_resets = {}
-#     col_resets[cell_group] = 'truth'
-#     col_resets['{}_Predicted'.format(cell_group)] = 'predicted'
-#     df_fixed = df.rename(columns=col_resets)[['truth', 'predicted']]
-#     df_rated = df_fixed.assign(
-#         correct=df_fixed.truth == df_fixed.predicted)
-#     accuracy = np.sum(df_rated.correct) / df_fixed.shape[0]
-#     df_sensitivity = df_rated.query(
-#         'truth == "{}"'.format(cell_name.replace('_', ' ')))
-#     sensitivity = np.sum(df_sensitivity.correct) / \
-#         df_sensitivity.shape[0]
-
-#     # True Negative / (True Negative + False Positive)
-#     df_specificity = df_rated.query(
-#         'truth != "{}"'.format(cell_name.replace('_', ' ')))
-#     df_specificity = df_specificity.assign(truenegative = df_specificity.predicted != cell_name)
-#     specificity = np.sum(df_specificity.truenegative) / \
-#         df_specificity.shape[0]
-
-#     return pd.DataFrame({'group': [cell_group], 'name': [cell_name],
-#                          'accuracy': [accuracy], 'sensitivity': [sensitivity],
-#                          'specificity': [specificity],
-#                          'set_score': [specificity + 2 * sensitivity]})
-
 
 
 def read_results(cell_group, cell_name):
