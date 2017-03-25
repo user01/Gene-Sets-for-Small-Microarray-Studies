@@ -64,7 +64,7 @@ root_glob = os.path.join(args.input, root_filename)
 score_paths = glob.glob(root_glob)
 
 
-score_files = map(pd.read_table, score_paths)
+score_files = list(map(pd.read_table, score_paths))
 score_data = rbind_all(score_files)
 
 

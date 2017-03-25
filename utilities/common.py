@@ -14,7 +14,7 @@ def rbind(df_a, df_b):
 
 
 def rbind_all(lst):
-    if len(lst) < 1:
+    if len(list(lst)) < 1 or lst is None:
         return None
     return reduce(rbind, lst)
 
