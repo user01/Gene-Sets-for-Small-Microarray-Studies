@@ -276,7 +276,7 @@ const make = (target, bin, args, noteRun = () => {}, noteMs = () => {}, message 
     // TODO: Note data and time of message
     console.log(` ${color('┌─────')}${pad(` ${header} `, lineWidth, color('─'))}`);
     console.log(` ${color('│')} ${chalk.yellow(target)}`);
-    console.log(` ${color('│')} ${chalk.white(args.join(' '))}`);
+    console.log(` ${color('│')} ${bin} ${chalk.white(args.join(' '))}`);
     if (err) {
       console.log('ERROR')
       console.log(err);
@@ -310,7 +310,7 @@ module.exports = {
   taskArgsToNew,
   fsAccess,
   readTypes,
-  readFeedback,
+  readTsv,
   cmd,
   make,
   z,

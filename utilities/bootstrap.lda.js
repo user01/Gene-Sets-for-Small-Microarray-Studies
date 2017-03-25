@@ -12,8 +12,8 @@ const {
   make,
   z,
   data,
+  readTsv,
   readTypes,
-  readFeedback,
   info
 } = require('./tools.js');
 
@@ -21,6 +21,7 @@ const run_lda_bootstrap = (title,
   bootstraps,
   fraction = 0.66,
   concurrency = 1,
+  python_binary = 'python',
   lda_score_measure = 'fmeasure',
   test_specific_cells = false) => {
 
@@ -124,7 +125,7 @@ const run_lda_bootstrap = (title,
     ];
     return localMake(
         path_output,
-        'python',
+        python_binary,
         args_lda,
         `Task: ${task_done}/${task_count} ${Math.floor(100 * task_done/task_count)}%`)
       .then(x => {
@@ -165,8 +166,10 @@ const run_lda_bootstrap = (title,
       '--feedback',
       path_feedback
     ];
-    return localMake(path_feedback, 'python', args)
-      .then(x => path_feedback);
+    return localMake(path_feedback, python_binary, args)
+      .then(x => R.merge(task, {
+        path_feedback
+      }));
   };
   const buildSetsAll = (tasks) => {
     const tasks_without_bootstrap = R.uniqBy(o => `${o.type}-${o.name}`, tasks);
@@ -175,9 +178,37 @@ const run_lda_bootstrap = (title,
     });
   };
 
+  const scoreSets = (task) => {
+    console.log(task);
 
-  const evaluateSets = (feedbacks) => {
-    return Promise.map(feedbacks, readFeedback, {
+    const data_path = res('gene_data_vs_cell_type.tsv');
+    const data_validation_path = res('gene_data_vs_cell_type.validation.tsv');
+    const path_source = res('');
+    const path_output = res(`${title}.set.results.${task.type}.${task.name.replace(/\s/g,'_')}.tsv`);
+
+    const args = [
+      'score_gsva.R',
+      '--input',
+      task.path_feedback,
+      '--basedata',
+      data_path,
+      '--validationdata',
+      data_validation_path,
+      '--source',
+      path_source,
+      '--output',
+      path_output
+    ];
+    return localMake(path_output, 'Rscript', args)
+      .then(x => path_output);
+    // return readTsv(feedbackPath)
+    //   .then(feedback => {
+    //     // console.log(feedback);
+    //   })
+  }
+
+  const evaluateSets = (feedbackPaths) => {
+    return Promise.map(feedbackPaths, scoreSets, {
       concurrency
     });
   };
@@ -200,7 +231,7 @@ const run_lda_bootstrap = (title,
       '--outputsets',
       path_sets
     ];
-    return make(false, 'python', args)
+    return make(false, python_binary, args)
       .then(x => path_sets);
   };
 
