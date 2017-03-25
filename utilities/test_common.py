@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from common import score_accuracy, score_recall, score_precision
+from common import score_accuracy, score_recall, score_precision, score_fmeasure
 
 
 class TestScores(unittest.TestCase):
@@ -24,6 +24,12 @@ class TestScores(unittest.TestCase):
         self.assertAlmostEqual(score_precision(self.df, 'b'), 1, 2)
         self.assertAlmostEqual(score_precision(self.df, 'c'), 0, 2)
         self.assertAlmostEqual(score_precision(self.df, 'd'), 0, 2)
+
+    def test_fmeasure(self):
+        self.assertAlmostEqual(score_fmeasure(self.df, 'a'), 0.571, 2)
+        self.assertAlmostEqual(score_fmeasure(self.df, 'b'), 0.5, 2)
+        self.assertAlmostEqual(score_fmeasure(self.df, 'c'), 0, 2)
+        self.assertAlmostEqual(score_fmeasure(self.df, 'd'), 0, 2)
 
 
 if __name__ == '__main__':

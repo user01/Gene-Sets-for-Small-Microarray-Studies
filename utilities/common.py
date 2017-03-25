@@ -60,8 +60,8 @@ def score_fmeasure(df, target):
     """2 * (precision * recall) / (precision + recall)"""
     precision = score_precision(df, target)
     recall = score_recall(df, target)
-    print('precision', precision)
-    print('recall', recall)
+    if precision + recall == 0:
+        return 0
     return 2 * (precision * recall) / (precision + recall)
 
 
