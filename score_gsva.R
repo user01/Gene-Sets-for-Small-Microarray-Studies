@@ -4,6 +4,7 @@ suppressPackageStartupMessages({
   library(readr)
   library(dplyr)
   library(purrr)
+  library(stringr)
   library(argparse)
   library(lazyeval)
 })
@@ -34,15 +35,15 @@ parser$add_argument("-o", "--output", type="character",
 args <- parser$parse_args()
 
 input_path <- args$input
-# input_path <- file.path("results", "base", "base.set.feedback.General_Cell_Type.Neutrophil.tsv")
+# input_path <- "results/full/full.set.feedback.Cell_Type.SI_Serosal_Mf.tsv"
 basedata_path <- args$basedata
-# basedata_path <- file.path("results", "base", "gene_data_vs_cell_type.tsv")
+# basedata_path <- "results/full/gene_data_vs_cell_type.tsv"
 validationdata_path <- args$validationdata
-# validationdata_path <- file.path("results", "base", "gene_data_vs_cell_type.validation.tsv")
+# validationdata_path <- "results/full/gene_data_vs_cell_type.tsv"
 source_path <- args$source
-# source_path <- file.path("results", "base")
+# source_path <- "results/full"
 output_path <- args$output
-# output_path <- file.path("results","base","base.set.results.General_Cell_Type.Neutrophil.tsv")
+# output_path <- "results/full/full.set.results.Cell_Type.SI_Serosal_Mf.tsv"
 
 print("Started")
 
@@ -78,11 +79,12 @@ data_read <- function(data_path){
     )) ->
     data
 
+  cell_name_fixed <- str_replace_all(cell_name, "_", " ")
   data %>%
     select_(cell_type) %>%
     unlist %>%
     unname %>%
-    map_chr(~ if (. == cell_name) { "target" } else { "other" }) %>%
+    map_chr(~ if (. == cell_name_fixed) { "target" } else { "other" }) %>%
     list(., 1:length(.)) %>%
     transpose %>%
     map_chr(~ paste0(.[1],.[2])) ->
@@ -97,7 +99,6 @@ data_read <- function(data_path){
 
 data_sets_base <- data_read(basedata_path)
 data_sets_validation <- data_read(validationdata_path)
-
 
 
 set_data %>%
@@ -155,11 +156,11 @@ score_sets <- function(df) {
 base_scores <- score_sets(base_enrichments)
 
 
-data_sets_validation %>%
-  as.data.frame %>%
-  select(starts_with("target")) %>%
-  ncol ->
-  count_of_targets
+# data_sets_validation %>%
+#   as.data.frame %>%
+#   select(starts_with("target")) %>%
+#   ncol ->
+#   count_of_targets
 
 # stop(paste("Count of targets: ", count_of_targets))
 
@@ -186,29 +187,22 @@ ci <- function(vect) {
 }
 ci_upper <- function(vect) { ci(vect)[1] }
 ci_lower <- function(vect) { ci(vect)[2] }
-#
-# df %>%
-#   t %>%
-#   as.data.frame %>%
-#   summarise_each(funs(ci_lower)) %>%
-#   unlist %>%
-#   unname ->
-#   lower_ci
-#
-# df %>%
-#   t %>%
-#   as.data.frame %>%
-#   summarise_each(funs(ci_lower)) %>%
-#   unlist %>%
-#   unname ->
-#   upper_ci
 
-
+get_ci <- function(df, fn) {
+  validation_enrichments %>%
+    t %>%
+    as.data.frame %>%
+    summarise_each(funs(fn)) %>%
+    unlist %>%
+    unname
+}
 
 
 set_data %>%
   mutate(
     base_scores = base_scores,
-    validation_scores = validation_scores
+    validation_scores = validation_scores,
+    validation_ci_lower = get_ci(validation_enrichments, ci_lower),
+    validation_ci_upper = get_ci(validation_enrichments, ci_upper)
   ) %>%
   write_tsv(output_path)
