@@ -98,7 +98,6 @@ data_read <- function(data_path){
 data_sets_base <- data_read(basedata_path)
 data_sets_validation <- data_read(validationdata_path)
 
-print("main Data")
 
 
 set_data %>%
@@ -124,10 +123,6 @@ set_data %>%
   GeneSetCollection ->
   gene_sets
 
-summary(gene_sets)
-
-print("Gene Sets")
-
 
 enrichment_values <- function(gene_data) {
   gsva(gene_data,
@@ -142,32 +137,6 @@ enrichment_values <- function(gene_data) {
 base_enrichments <- enrichment_values(data_sets_base)
 validation_enrichments <- enrichment_values(data_sets_validation)
 
-print("enrichment_values")
-
-# read_csv("something.csv") -> df
-# read_tsv("results/base/base.set.results.General_Cell_Type.Microglia.tsv") -> df
-#
-# df %>% glimpse
-# df %>%
-#   select(starts_with("other")) %>%
-#   summarise_each(funs(mean)) %>%
-#   glimpse
-# df %>%
-#   select(starts_with("other")) %>%
-#   rowMeans %>%
-#   abs %>%
-#   glimpse
-#
-# df %>%
-#   select(starts_with("target")) %>%
-#   rowMeans %>%
-#   abs %>%
-#   glimpse
-#
-#
-# df %>%
-#   select(starts_with("other")) %>%
-#   mutate(x = rowMeans(.))
 
 enrichment_mean <- function(df, prefix) {
   df %>%
@@ -184,8 +153,22 @@ score_sets <- function(df) {
 }
 
 base_scores <- score_sets(base_enrichments)
-validation_scores <- score_sets(validation_enrichments)
 
+
+data_sets_validation %>%
+  as.data.frame %>%
+  select(starts_with("target")) %>%
+  ncol ->
+  count_of_targets
+
+# stop(paste("Count of targets: ", count_of_targets))
+
+validation_scores <- if(count_of_targets > 0) {
+  score_sets(validation_enrichments)
+} else {
+  warning("Insufficent data for validation")
+  1:length(gene_sets) * 0
+}
 
 
 ci <- function(vect) {
@@ -229,36 +212,3 @@ set_data %>%
     validation_scores = validation_scores
   ) %>%
   write_tsv(output_path)
-
-
-#
-# gsva(data_sets_base$data_other, gene_sets, mx.diff=1, parallel.sz = 1) %>%
-#   get('es.obs', .) ->
-#   enrichment_gautier_other
-
-#
-# # results/base/base.set.feedback.General_Cell_Type.Neutrophil.tsv
-#
-# p <- 10 ## number of genes
-# n <- 30 ## number of samples
-# nGrp1 <- 15 ## number of samples in group 1
-# nGrp2 <- n - nGrp1 ## number of samples in group 2
-#
-# matrix(rnorm(3*4), nrow=4, ncol=3,dimnames=list(paste("g", 1:4, sep="") , paste("s", 1:3, sep="")))
-#
-# y <- matrix(rnorm(n*p), nrow=p, ncol=n,dimnames=list(paste("g", 1:p, sep="") , paste("s", 1:n, sep="")))
-#
-# geneSets <- list(set1=paste("g", 1:3, sep=""),
-#                  set2=paste("g", 4:6, sep=""),
-#                  set3=paste("g", 7:10, sep=""))
-#
-# res <- gsva(y, geneSets, mx.diff=1)
-#
-#
-# gene_data <- matrix(rnorm(n*p), nrow=p, ncol=n,dimnames=list(paste("g", 1:p, sep="") , paste("s", 1:n, sep="")))
-#
-# gene_sets <- list(set1=paste("g", 1:3, sep=""),
-#                   set2=paste("g", 4:6, sep=""),
-#                   set3=paste("g", 7:10, sep=""))
-#
-# res <- gsva(gene_data, geneSets, mx.diff=1)
