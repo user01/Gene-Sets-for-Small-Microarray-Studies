@@ -40,6 +40,8 @@ def score_precision(df, target):
     total_positive = np.sum(df.predicted == target)
     true_positive = np.sum(np.logical_and(
         df.predicted == df.truth, df.predicted == target))
+    if total_positive == 0:
+        return 0
     return true_positive / total_positive
 
 
@@ -49,6 +51,8 @@ def score_recall(df, target):
         df.predicted == df.truth, df.predicted == target))
     false_negative = np.sum(np.logical_and(
         df.predicted != df.truth, df.truth == target))
+    if true_positive + false_negative == 0:
+        return 0
     return true_positive / (true_positive + false_negative)
 
 
@@ -56,6 +60,8 @@ def score_fmeasure(df, target):
     """2 * (precision * recall) / (precision + recall)"""
     precision = score_precision(df, target)
     recall = score_recall(df, target)
+    print('precision', precision)
+    print('recall', recall)
     return 2 * (precision * recall) / (precision + recall)
 
 
