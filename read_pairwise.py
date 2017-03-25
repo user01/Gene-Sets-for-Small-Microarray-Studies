@@ -67,7 +67,7 @@ def read_results(cell_group, cell_name):
         return None
     return pd.read_table(results_path).rename(
         columns={'index': 'set_id'}) \
-        .sort_values('base_scores', ascending=False) \
+        .sort_values('base_score', ascending=False) \
         .reset_index(drop=True)
 
 
