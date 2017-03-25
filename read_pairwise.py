@@ -89,6 +89,8 @@ def read_results(path, cell_group, cell_name):
 
 def read_glob(current_glob, cell_group, cell_name):
     result_paths = glob.glob(current_glob)
+    if len(result_paths) < 1:
+        return None
     results_dfs = map(lambda path: read_results(
         path, cell_group, cell_name), result_paths)
     return rbind_all(list(results_dfs))
@@ -109,6 +111,9 @@ def read_feedback(cell_group, cell_name):
         args.input, filename), data_paths)
     results = rbind_all(list(map(lambda g: read_glob(
         g, cell_group, cell_name), data_paths_full)))
+    if results is None:
+        return None
+
     results_all = pd.DataFrame.merge(feedback, results, on="set_id")
     return results_all.groupby(
         ['group', 'name', 'set_id', 'genes_in_set', 'genes_considered'], as_index=False) \
@@ -140,6 +145,9 @@ df_cell_full, df_cell_leader = read_types('Cell_Type', cell_names)
 df_full = rbind_all(df_general_full + df_cell_full)
 df_leader = rbind_all(df_general_leader + df_cell_leader)
 
+if df_full is None:
+    print("No data supplied to test")
+    sys.exit(0)
 
 df_full.to_csv(args.outputfull, sep='\t', encoding='utf-8')
 df_leader.to_csv(args.outputleader, sep='\t', encoding='utf-8')

@@ -5,11 +5,17 @@ import numpy as np
 
 
 def rbind(df_a, df_b):
+    if df_a is None:
+        return df_b
+    if df_b is None:
+        return None
     return pd.DataFrame.append(df_a, df_b) \
         .reset_index(drop=True)
 
 
 def rbind_all(lst):
+    if len(lst) < 1:
+        return None
     return reduce(rbind, lst)
 
 

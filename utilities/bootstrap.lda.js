@@ -179,7 +179,7 @@ const run_lda_bootstrap = (title,
   };
 
   const scoreSets = (task) => {
-    console.log(task);
+    // console.log(task);
 
     const data_path = res('gene_data_vs_cell_type.tsv');
     const data_validation_path = res('gene_data_vs_cell_type.validation.tsv');
