@@ -82,7 +82,10 @@ data_read <- function(data_path){
     select_(cell_type) %>%
     unlist %>%
     unname %>%
-    map_chr(~ if (. == cell_name) { "target" } else { "other" }) ->
+    map_chr(~ if (. == cell_name) { "target" } else { "other" }) %>%
+    list(., 1:length(.)) %>%
+    transpose %>%
+    map_chr(~ paste0(.[1],.[2])) ->
     col_names
 
   data %>%
@@ -129,27 +132,102 @@ print("Gene Sets")
 enrichment_values <- function(gene_data) {
   gsva(gene_data,
        gene_sets,
-       min.sz = 15,
-       max.sz = 500,
        verbose = FALSE,
        parallel.sz = 1) %>%
     get('es.obs', .) %>%
     as.data.frame
 }
 
-base_scores <- enrichment_values(data_sets_base)
-validation_scores <- enrichment_values(data_sets_validation)
+
+base_enrichments <- enrichment_values(data_sets_base)
+validation_enrichments <- enrichment_values(data_sets_validation)
 
 print("enrichment_values")
 
+# read_csv("something.csv") -> df
+# read_tsv("results/base/base.set.results.General_Cell_Type.Microglia.tsv") -> df
+#
+# df %>% glimpse
+# df %>%
+#   select(starts_with("other")) %>%
+#   summarise_each(funs(mean)) %>%
+#   glimpse
+# df %>%
+#   select(starts_with("other")) %>%
+#   rowMeans %>%
+#   abs %>%
+#   glimpse
+#
+# df %>%
+#   select(starts_with("target")) %>%
+#   rowMeans %>%
+#   abs %>%
+#   glimpse
+#
+#
+# df %>%
+#   select(starts_with("other")) %>%
+#   mutate(x = rowMeans(.))
 
-base_scores %>%
-  # mutate(
-  #   base_other_scores = base_other_scores,
-  #   base_target_scores = base_target_scores,
-  #   validation_other_scores = validation_other_scores,
-  #   validation_target_scores = validation_target_scores
-  # ) %>%
+enrichment_mean <- function(df, prefix) {
+  df %>%
+    select(starts_with(prefix)) %>%
+    rowMeans %>%
+    abs
+}
+score_sets <- function(df) {
+  # compare target vs other
+  scores_target <- enrichment_mean(df, "target")
+  scores_other <- enrichment_mean(df, "other")
+  # score of the target vs other samples
+  scores_target - scores_other
+}
+
+base_scores <- score_sets(base_enrichments)
+validation_scores <- score_sets(validation_enrichments)
+
+
+
+ci <- function(vect) {
+  #confidence interval
+  n = length(vect)
+  z = 1.96 #this represents alpha = 0.95
+  std_dev <- sd(vect)
+
+  c(
+    #upper bound
+    mean(vect) + z*std_dev/(n^0.5),
+    #lower bound
+    mean(vect) - z*std_dev/(n^0.5)
+  )
+}
+ci_upper <- function(vect) { ci(vect)[1] }
+ci_lower <- function(vect) { ci(vect)[2] }
+#
+# df %>%
+#   t %>%
+#   as.data.frame %>%
+#   summarise_each(funs(ci_lower)) %>%
+#   unlist %>%
+#   unname ->
+#   lower_ci
+#
+# df %>%
+#   t %>%
+#   as.data.frame %>%
+#   summarise_each(funs(ci_lower)) %>%
+#   unlist %>%
+#   unname ->
+#   upper_ci
+
+
+
+
+set_data %>%
+  mutate(
+    base_scores = base_scores,
+    validation_scores = validation_scores
+  ) %>%
   write_tsv(output_path)
 
 
