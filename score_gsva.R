@@ -156,11 +156,11 @@ score_sets <- function(df) {
 base_scores <- score_sets(base_enrichments)
 
 
-# data_sets_validation %>%
-#   as.data.frame %>%
-#   select(starts_with("target")) %>%
-#   ncol ->
-#   count_of_targets
+data_sets_validation %>%
+  as.data.frame %>%
+  select(starts_with("target")) %>%
+  ncol ->
+  count_of_targets
 
 # stop(paste("Count of targets: ", count_of_targets))
 
@@ -172,37 +172,10 @@ validation_scores <- if(count_of_targets > 0) {
 }
 
 
-ci <- function(vect) {
-  #confidence interval
-  n = length(vect)
-  z = 1.96 #this represents alpha = 0.95
-  std_dev <- sd(vect)
-
-  c(
-    #upper bound
-    mean(vect) + z*std_dev/(n^0.5),
-    #lower bound
-    mean(vect) - z*std_dev/(n^0.5)
-  )
-}
-ci_upper <- function(vect) { ci(vect)[1] }
-ci_lower <- function(vect) { ci(vect)[2] }
-
-get_ci <- function(df, fn) {
-  validation_enrichments %>%
-    t %>%
-    as.data.frame %>%
-    summarise_each(funs(fn)) %>%
-    unlist %>%
-    unname
-}
-
-
 set_data %>%
+  select(-score_avg, -score_max, -score_min, -score_std) %>%
   mutate(
-    base_scores = base_scores,
-    validation_scores = validation_scores,
-    validation_ci_lower = get_ci(validation_enrichments, ci_lower),
-    validation_ci_upper = get_ci(validation_enrichments, ci_upper)
+    base_score = base_scores,
+    validation_score = validation_scores
   ) %>%
   write_tsv(output_path)
