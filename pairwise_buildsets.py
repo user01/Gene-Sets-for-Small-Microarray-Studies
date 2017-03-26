@@ -31,12 +31,10 @@ parser.add_argument('--name', type=str, required=True,
 parser.add_argument('--type', type=str, required=True,
                     help='General or specific cell type')
 
-parser.add_argument('--raw', type=str, required=True,
-                    help='Path to raw gene data')
 parser.add_argument('--input', type=str, required=True,
                     help='Path to input score files')
 parser.add_argument('--output', type=str, required=True,
-                    help='Path to output set id and data files')
+                    help='Path to output set id files')
 parser.add_argument('--feedback', type=str, required=True,
                     help='Path to feedback file (list of created sets)')
 
@@ -44,7 +42,6 @@ args = parser.parse_args()
 # args = parser.parse_args(([
 #     '--low', '16',
 #     '--high', '100',
-#     '--raw', 'results/gene_data_vs_cell_type.tsv',
 #     '--input', 'results',
 #     '--title', 'main',
 #     '--type', 'General_Cell_Type',
@@ -53,7 +50,6 @@ args = parser.parse_args()
 #     '--feedback', 'results/feedback.sets.tsv'
 # ]))
 
-raw_data = pd.read_table(args.raw)
 
 # Important since some names have spaces
 cell_name = args.name.replace('"', '').replace(' ', '_')
@@ -63,8 +59,7 @@ root_filename = '{}.score.*.{}.{}.tsv'.format(
 root_glob = os.path.join(args.input, root_filename)
 score_paths = glob.glob(root_glob)
 
-
-score_files = map(pd.read_table, score_paths)
+score_files = list(map(pd.read_table, score_paths))
 score_data = rbind_all(score_files)
 
 
@@ -138,11 +133,3 @@ for idx, gene_set in enumerate(all_sets):
     path_set = os.path.join(args.output, filename_set)
     frame.to_csv(path_set, sep='\t',
                  encoding='utf-8', index=False)
-
-    filename_data = '{}.set.data.{}.{}.{:05d}.tsv'.format(
-        args.title, args.type, cell_name, idx)
-    path_data = os.path.join(args.output, filename_data)
-    frame_data = raw_data[gene_set_lst +
-                          ['GSM_ID', 'Cell_Type', 'General_Cell_Type']]
-    frame_data.to_csv(path_data, sep='\t',
-                      encoding='utf-8', index=False)

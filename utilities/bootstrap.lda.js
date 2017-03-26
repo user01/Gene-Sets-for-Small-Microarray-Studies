@@ -157,8 +157,6 @@ const run_lda_bootstrap = (title,
       `"${task.name}"`,
       '--title',
       title,
-      '--raw',
-      res('gene_data_vs_cell_type.tsv'),
       '--input',
       path_output,
       '--output',
@@ -264,6 +262,20 @@ const run_lda_bootstrap = (title,
 }; // end of LDA bootstrap code
 
 
+const read_pairwise_union = (python_binary = 'python3') => {
+  // collect all produced leaders into a single file
+  return make(
+    false, python_binary, [
+      'read_pairwise_union.py',
+      '--input',
+      '**/**/*.sets.leaders.tsv',
+      '--output',
+      'results/combined.tsv'
+    ]
+  );
+};
+
 module.exports = {
-  run_lda_bootstrap
+  run_lda_bootstrap,
+  read_pairwise_union
 };
