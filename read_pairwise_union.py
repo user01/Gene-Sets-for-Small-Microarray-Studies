@@ -41,7 +41,15 @@ def leader_conversion(path):
         .rename(columns={
             'genes_considered': 'genes_considered_' + title,
             'genes_in_set': 'genes_in_set_' + title,
-            'base_score': 'training_score_' + title,
+            'score_train_Macrophage': 'train_score_Macrophage_' + title,
+            'score_validation_Macrophage': 'validation_score_Macrophage_' + title,
+            'score_train_Microglia': 'train_score_Microglia_' + title,
+            'score_validation_Microglia': 'validation_score_Microglia_' + title,
+            'score_train_Neutrophil': 'train_score_Neutrophil_' + title,
+            'score_validation_Neutrophil': 'validation_score_Neutrophil_' + title,
+            'score_train_Monocyte': 'train_score_Monocyte_' + title,
+            'score_validation_Monocyte': 'validation_score_Monocyte_' + title,
+            'base_score': 'train_score_' + title,
             'validation_score': 'validation_score_' + title
         }) \
         .drop(['title', 'cell_type', 'cell_name'], 1) \
