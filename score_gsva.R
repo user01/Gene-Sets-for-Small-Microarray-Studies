@@ -43,7 +43,7 @@ validationdata_path <- args$validationdata
 source_path <- args$source
 # source_path <- "results/full"
 output_path <- args$output
-# output_path <- "results/full/full.set.results.Cell_Type.SI_Serosal_Mf.tsv"
+# output_path <- "full.set.results.Cell_Type.SI_Serosal_Mf.tsv"
 
 print("Started")
 
@@ -68,7 +68,6 @@ title <- set_data %>% get("title", .) %>% first
 
 print("Set Data")
 
-
 data_read <- function(data_path){
   data_path %>%
     read_tsv(col_types = cols(
@@ -76,15 +75,20 @@ data_read <- function(data_path){
       GSM_ID = col_character(),
       Cell_Type = col_character(),
       General_Cell_Type = col_character()
-    )) ->
-    data
+    ))
+}
 
-  cell_name_fixed <- str_replace_all(cell_name, "_", " ")
+data_base_raw <- data_read(basedata_path)
+data_validation_raw <- data_read(validationdata_path)
+
+
+data_process <- function(data, target_name, target_type){
   data %>%
-    select_(cell_type) %>%
+    # select_(cell_type) %>%
+    select_(target_type) %>%
     unlist %>%
     unname %>%
-    map_chr(~ if (. == cell_name_fixed) { "target" } else { "other" }) %>%
+    map_chr(~ if (. == target_name) { "target" } else { "other" }) %>%
     list(., 1:length(.)) %>%
     transpose %>%
     map_chr(~ paste0(.[1],.[2])) ->
@@ -97,8 +101,20 @@ data_read <- function(data_path){
     `colnames<-`(col_names)
 }
 
-data_sets_base <- data_read(basedata_path)
-data_sets_validation <- data_read(validationdata_path)
+cell_name_fixed <- str_replace_all(cell_name, "_", " ")
+data_sets_base <- data_process(data_base_raw, cell_name_fixed, cell_type)
+data_sets_validation <- data_process(data_validation_raw, cell_name_fixed, cell_type)
+
+
+c("Macrophage","Microglia","Neutrophil","Monocyte") %>%
+  map(function(current_type){
+    list(
+      name=current_type,
+      mat_train=data_process(data_base_raw, current_type, "General_Cell_Type"),
+      mat_validation=data_process(data_validation_raw, current_type, "General_Cell_Type")
+    )
+  }) ->
+  four_vs_others
 
 
 set_data %>%
@@ -172,10 +188,35 @@ validation_scores <- if(count_of_targets > 0) {
 }
 
 
+four_vs_others %>%
+  map(function(payload){
+    name <- payload %>% get('name', .)
+    mat_train <- payload %>% get('mat_train', .)
+    mat_validation <- payload %>% get('mat_validation', .)
+
+    enrichment_train <- enrichment_values(mat_train)
+    enrichment_validation <- enrichment_values(mat_validation)
+    score_train <- score_sets(enrichment_train)
+    score_validation <- score_sets(enrichment_validation)
+    data.frame(
+      score_train = score_train,
+      score_validation = score_validation
+    ) %>%
+    rename_(.dots = setNames("score_train", paste0("score_train_", name))) %>%
+    rename_(.dots = setNames("score_validation", paste0("score_validation_", name)))
+  }) %>%
+  reduce(cbind) ->
+  four_vs_others_df
+
+
 set_data %>%
   select(-score_avg, -score_max, -score_min, -score_std) %>%
   mutate(
     base_score = base_scores,
     validation_score = validation_scores
+  ) %>%
+  cbind(
+    .,
+    four_vs_others_df
   ) %>%
   write_tsv(output_path)
