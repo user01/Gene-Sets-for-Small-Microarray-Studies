@@ -3,57 +3,84 @@ const {
   read_pairwise_union
 } = require('./utilities/bootstrap.lda.js');
 
-const runBase = () =>
-  run_lda_bootstrap('base',   // Title
+const runBase100_200 = () =>
+  run_lda_bootstrap('100.200.base',   // Title
                     1,        // Bootstraps
                     1.0,      // Fraction to sample
                     4,        // concurrency
-                    'python3',
-                    'fmeasure',
-                    true);
+                    'python3', // python_binary
+                    'fmeasure', // scoring mechanic
+                    100,        // smallest gene set
+                    200,        // largest gene set size
+                    300,        // number of sets to create
+                    false);
 
-const runMain = () =>
-  run_lda_bootstrap('full',   // Title
-                    100,      // Bootstraps
-                    0.66,     // Fraction to sample
+const runBase200_300 = () =>
+  run_lda_bootstrap('200.300.base',   // Title
+                    1,        // Bootstraps
+                    1.0,      // Fraction to sample
                     4,        // concurrency
-                    'python3',
-                    'fmeasure',
-                    true);
+                    'python3', // python_binary
+                    'fmeasure', // scoring mechanic
+                    200,        // smallest gene set
+                    300,        // largest gene set size
+                    300,        // number of sets to create
+                    false);
 
-const runAccuracy = () =>
-  run_lda_bootstrap('accuracy',   // Title
-                    100,      // Bootstraps
-                    0.66,     // Fraction to sample
+
+const runBase300_400 = () =>
+  run_lda_bootstrap('300.400.base',   // Title
+                    1,        // Bootstraps
+                    1.0,      // Fraction to sample
                     4,        // concurrency
-                    'python3',
-                    'accuracy',
-                    true);
+                    'python3', // python_binary
+                    'fmeasure', // scoring mechanic
+                    300,        // smallest gene set
+                    400,        // largest gene set size
+                    300,        // number of sets to create
+                    false);
 
-const runSmall = () =>
-  run_lda_bootstrap('small',   // Title
-                    200,      // Bootstraps
-                    0.33,     // Fraction to sample
+const runMain100_200 = () =>
+  run_lda_bootstrap('100.200.main',   // Title
+                    100,        // Bootstraps
+                    0.66,      // Fraction to sample
                     4,        // concurrency
-                    'python3',
-                    'fmeasure',
-                    true);
+                    'python3', // python_binary
+                    'fmeasure', // scoring mechanic
+                    100,        // smallest gene set
+                    200,        // largest gene set size
+                    300,        // number of sets to create
+                    false);
 
-const runTiny = () =>
-  run_lda_bootstrap('tiny',   // Title
-                    300,      // Bootstraps
-                    0.2,     // Fraction to sample
+const runMain200_300 = () =>
+  run_lda_bootstrap('200.300.main',   // Title
+                    100,        // Bootstraps
+                    0.66,      // Fraction to sample
                     4,        // concurrency
-                    'python3',
-                    'fmeasure',
-                    true);
+                    'python3', // python_binary
+                    'fmeasure', // scoring mechanic
+                    200,        // smallest gene set
+                    300,        // largest gene set size
+                    300,        // number of sets to create
+                    false);
 
 
+const runMain300_400 = () =>
+  run_lda_bootstrap('300.400.main',   // Title
+                    100,        // Bootstraps
+                    0.66,      // Fraction to sample
+                    4,        // concurrency
+                    'python3', // python_binary
+                    'fmeasure', // scoring mechanic
+                    300,        // smallest gene set
+                    400,        // largest gene set size
+                    300,        // number of sets to create
+                    false);
 
-// runBase()
-runBase()
-  .then(runMain)
-  .then(runAccuracy)
-  .then(runSmall)
-  .then(runTiny)
-  .then(read_pairwise_union);
+
+runBase100_200()
+  .then(runBase200_300)
+  .then(runBase300_400)
+  .then(runMain100_200)
+  .then(runMain200_300)
+  .then(runMain300_400);
