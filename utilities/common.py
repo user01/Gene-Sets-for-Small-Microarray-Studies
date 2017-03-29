@@ -114,14 +114,18 @@ def collapse_sets_(unfinished_sets, known_sets):
     return collapse_sets_(untested_sets, known_clean)
 
 
-def pairs_to_sets(pairs):
+def pairs_to_sets(pairs, max_size):
     """Turn a low/high pandas dataframe into a list of sets"""
-    return pairs_to_sets_(pairs[['low', 'high']], [])
+    return pairs_to_sets_(pairs[['low', 'high']], [], max_size)
 
 
-def pairs_to_sets_(pairs, gene_sets):
+def pairs_to_sets_(pairs, gene_sets, max_size):
     """Private - turn a pandas df into a list of sets"""
     if pairs.shape[0] < 1:
+        return gene_sets
+    # if any of the gene sets are at the max size, return
+    # this prevents runaway creation of huge gene sets that will just be rejected
+    if (len(list(filter(lambda ss: len(ss) >= max_size, gene_sets)))):
         return gene_sets
 
     pair = set([pairs.iloc[0][0], pairs.iloc[0][1]])
@@ -134,4 +138,4 @@ def pairs_to_sets_(pairs, gene_sets):
     gene_sets = collapse_sets(gene_sets)
 
     pairs_tail = pairs.tail(-1)
-    return pairs_to_sets_(pairs_tail, gene_sets)
+    return pairs_to_sets_(pairs_tail, gene_sets, max_size)
