@@ -6,7 +6,7 @@ import sys
 
 # Note that python doesn't support tail call optimization, so the recursive
 #  calls for set creation should be optimized for a loop
-sys.setrecursionlimit(200000)
+sys.setrecursionlimit(2000000)
 
 from itertools import combinations
 import numpy as np
@@ -40,13 +40,14 @@ parser.add_argument('--feedback', type=str, required=True,
 
 args = parser.parse_args()
 # args = parser.parse_args(([
-#     '--low', '16',
-#     '--high', '100',
-#     '--input', 'results',
-#     '--title', 'main',
+#     '--low', '100',
+#     '--high', '200',
+#     '--count', '300',
+#     '--input', 'results/100_200_main',
+#     '--title', '100_200_main',
 #     '--type', 'General_Cell_Type',
-#     '--name', '"Monocyte"',
-#     '--output', 'results',
+#     '--name', '"B cell"',
+#     '--output', 'results/100_200_main',
 #     '--feedback', 'results/feedback.sets.tsv'
 # ]))
 
@@ -59,7 +60,15 @@ root_filename = '{}.score.*.{}.{}.tsv'.format(
 root_glob = os.path.join(args.input, root_filename)
 score_paths = glob.glob(root_glob)
 
-score_files = list(map(pd.read_table, score_paths))
+def temp_read(path):
+    try:
+        return pd.read_table(path)
+    except:
+        print(path)
+        pass
+
+# score_files = list(map(pd.read_table, score_paths))
+score_files = list(map(temp_read, score_paths))
 score_data = rbind_all(score_files)
 
 
@@ -74,9 +83,11 @@ def set_values(paired_scores, min_size, max_size, head_size):
     """For top head_size paired scores, generate sets that conform to min/max"""
     values = paired_scores.head(head_size)
     scores = values.weighted_score
+    pairs_and_sets = pairs_to_sets(values, max_size)
+    print("Sizes: ", head_size, list(map(len, pairs_and_sets)))
     current_sets = list(filter(lambda gene_set: len(gene_set) >= min_size and
                                len(gene_set) <= max_size,
-                               pairs_to_sets(values)))
+                               pairs_and_sets))
 
     feedback_frames = []
     for gene_set in current_sets:
@@ -105,8 +116,11 @@ all_sets = []
 all_dfs = []
 head_sizes = list(np.arange(paired_scores.shape[0] // args.low)
                   * args.low + args.low)
+print(head_sizes)
+print("number of iterations:", len(head_sizes))
 # For each given step, generate sets. If unique, add them to the list
-for head_size in head_sizes:
+for idx, head_size in enumerate(head_sizes):
+    print("    - ", math.floor( 100 * idx / len(head_sizes)), "%")
     df, gene_sets = set_values(
         paired_scores, args.low, args.high, head_size)
     df, gene_sets = unique_sets(all_sets, df, gene_sets)
@@ -116,6 +130,10 @@ for head_size in head_sizes:
     all_sets = all_sets + gene_sets
     if len(all_sets) > args.count:
         break
+
+if len(all_dfs) < 1:
+    print("No valid gene sets generated")
+    sys.exit(1)
 
 feedback = rbind_all(all_dfs)
 feedback = feedback.assign(
