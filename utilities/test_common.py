@@ -1,6 +1,7 @@
 import unittest
 import pandas as pd
-from common import score_accuracy, score_recall, score_precision, score_fmeasure
+from .common import score_accuracy, score_recall, score_precision, score_fmeasure
+from .common import pairs_to_sets
 
 
 class TestScores(unittest.TestCase):
@@ -31,6 +32,21 @@ class TestScores(unittest.TestCase):
         self.assertAlmostEqual(score_fmeasure(self.df, 'c'), 0, 2)
         self.assertAlmostEqual(score_fmeasure(self.df, 'd'), 0, 2)
 
+
+class TestSetCreation(unittest.TestCase):
+    def setUp(self):
+        self.df = pd.DataFrame({
+            'low':  ['1','2','c','5','6','7','8','a','b'],
+            'high': ['2','3','d','6','7','8','9','b','c'],
+        })
+
+    def test_basic(self):
+        test_sets = pairs_to_sets(self.df, 20)
+        print(test_sets)
+        self.assertEqual(len(test_sets), 3)
+        self.assertEqual(test_sets[0], set(['1','2','3']))
+        self.assertEqual(test_sets[1], set(['5','6','7','8','9']))
+        self.assertEqual(test_sets[2], set(['a','b','c','d']))
 
 if __name__ == '__main__':
     unittest.main()
