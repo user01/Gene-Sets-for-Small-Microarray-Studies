@@ -6,3 +6,6 @@ clean:
 
 clean-set-results:
 	-$(RM) results/**/*.set.results.*.tsv
+
+test:
+	python -m unittest discover

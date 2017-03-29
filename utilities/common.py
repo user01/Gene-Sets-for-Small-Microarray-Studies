@@ -84,6 +84,8 @@ def add_pair_to_sets(pair, gene_sets):
     for gene_set in gene_sets:
         if set_contained_in_set(pair, gene_set):
             gene_sets_new.append(gene_set | pair)
+        else:
+            gene_sets_new.append(gene_set)
     return gene_sets_new
 
 
