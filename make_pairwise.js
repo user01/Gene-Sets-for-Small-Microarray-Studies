@@ -4,7 +4,7 @@ const {
 } = require('./utilities/bootstrap.lda.js');
 
 const runBase100_200 = () =>
-  run_lda_bootstrap('100.200.base',   // Title
+  run_lda_bootstrap('100_200_base',   // Title
                     1,        // Bootstraps
                     1.0,      // Fraction to sample
                     4,        // concurrency
@@ -16,7 +16,7 @@ const runBase100_200 = () =>
                     false);
 
 const runBase200_300 = () =>
-  run_lda_bootstrap('200.300.base',   // Title
+  run_lda_bootstrap('200_300_base',   // Title
                     1,        // Bootstraps
                     1.0,      // Fraction to sample
                     4,        // concurrency
@@ -29,7 +29,7 @@ const runBase200_300 = () =>
 
 
 const runBase300_400 = () =>
-  run_lda_bootstrap('300.400.base',   // Title
+  run_lda_bootstrap('300_400_base',   // Title
                     1,        // Bootstraps
                     1.0,      // Fraction to sample
                     4,        // concurrency
@@ -41,7 +41,7 @@ const runBase300_400 = () =>
                     false);
 
 const runMain100_200 = () =>
-  run_lda_bootstrap('100.200.main',   // Title
+  run_lda_bootstrap('100_200_main',   // Title
                     100,        // Bootstraps
                     0.66,      // Fraction to sample
                     4,        // concurrency
@@ -53,7 +53,7 @@ const runMain100_200 = () =>
                     false);
 
 const runMain200_300 = () =>
-  run_lda_bootstrap('200.300.main',   // Title
+  run_lda_bootstrap('200_300_main',   // Title
                     100,        // Bootstraps
                     0.66,      // Fraction to sample
                     4,        // concurrency
@@ -66,7 +66,7 @@ const runMain200_300 = () =>
 
 
 const runMain300_400 = () =>
-  run_lda_bootstrap('300.400.main',   // Title
+  run_lda_bootstrap('300_400_main',   // Title
                     100,        // Bootstraps
                     0.66,      // Fraction to sample
                     4,        // concurrency
@@ -78,9 +78,11 @@ const runMain300_400 = () =>
                     false);
 
 
-runBase100_200()
-  .then(runBase200_300)
-  .then(runBase300_400)
+// runBase100_200()
+  // .then(runBase200_300)
+  // .then(runBase300_400)
+  // .then(runMain200_300)
+
+runMain200_300()
+  .then(runMain300_400)
   .then(runMain100_200)
-  .then(runMain200_300)
-  .then(runMain300_400);
