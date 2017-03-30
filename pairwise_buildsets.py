@@ -111,13 +111,14 @@ def unique_sets(existing_sets, dfs, new_sets):
 
 all_sets = []
 all_dfs = []
-head_sizes = list(np.arange(paired_scores.shape[0] // args.low)
-                  * args.low + args.low)
+head_sizes = np.arange(paired_scores.shape[0] // args.low) * args.low + args.low
+head_sizes = list(filter(lambda head_size: head_size < 30 * args.high, head_sizes))
+
 print(head_sizes)
 print("number of iterations:", len(head_sizes))
 # For each given step, generate sets. If unique, add them to the list
 for idx, head_size in enumerate(head_sizes):
-    print("    - ", math.floor( 100 * idx / len(head_sizes)), "%")
+    print("    - ", idx, "  ", math.floor( 100 * idx / len(head_sizes)), "%")
     df, gene_sets = set_values(
         paired_scores, args.low, args.high, head_size)
     df, gene_sets = unique_sets(all_sets, df, gene_sets)
@@ -125,6 +126,7 @@ for idx, head_size in enumerate(head_sizes):
         continue
     all_dfs = all_dfs + df
     all_sets = all_sets + gene_sets
+    print("Found ", len(all_sets), "sets")
     if len(all_sets) > args.count:
         break
 
