@@ -83,11 +83,8 @@ def set_values(paired_scores, min_size, max_size, head_size):
     """For top head_size paired scores, generate sets that conform to min/max"""
     values = paired_scores.head(head_size)
     scores = values.weighted_score
-    pairs_and_sets = pairs_to_sets(values, max_size)
-    print("Sizes: ", head_size, list(map(len, pairs_and_sets)))
-    current_sets = list(filter(lambda gene_set: len(gene_set) >= min_size and
-                               len(gene_set) <= max_size,
-                               pairs_and_sets))
+    current_sets = pairs_to_sets(values, min_size, max_size)
+    print("Sizes: ", head_size, list(map(len, current_sets)))
 
     feedback_frames = []
     for gene_set in current_sets:
