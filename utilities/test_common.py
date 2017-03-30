@@ -41,12 +41,18 @@ class TestSetCreation(unittest.TestCase):
         })
 
     def test_basic(self):
-        test_sets = pairs_to_sets(self.df, 20)
+        test_sets = pairs_to_sets(self.df, 0, 20)
         print(test_sets)
         self.assertEqual(len(test_sets), 3)
         self.assertEqual(test_sets[0], set(['1','2','3']))
         self.assertEqual(test_sets[1], set(['5','6','7','8','9']))
         self.assertEqual(test_sets[2], set(['a','b','c','d']))
+
+    def test_limits(self):
+        test_sets = pairs_to_sets(self.df, 4, 4)
+        print(test_sets)
+        self.assertEqual(len(test_sets), 1)
+        self.assertEqual(test_sets[0], set(['a','b','c','d']))
 
 if __name__ == '__main__':
     unittest.main()
