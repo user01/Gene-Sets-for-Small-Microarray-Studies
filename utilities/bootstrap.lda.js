@@ -26,6 +26,7 @@ const run_lda_bootstrap = (title,
   gene_set_size_low = 100,
   gene_set_size_high = 200,
   gene_set_count_target = 200,
+  gene_pairs = 1000,
   test_specific_cells = false) => {
 
   const results_directory = path.join('results', title);
@@ -116,7 +117,7 @@ const run_lda_bootstrap = (title,
       '--seed',
       task.bootstrap,
       '--pairs',
-      1000,
+      gene_pairs,
       '--bootstrap',
       `${fraction}`,
       '--type',
@@ -273,7 +274,7 @@ const read_pairwise_union = (python_binary = 'python3') => {
     false, python_binary, [
       'read_pairwise_union.py',
       '--input',
-      '**/**/*.sets.leaders.tsv',
+      `"**/**/*.sets.leaders.tsv"`,
       '--output',
       'results/combined.tsv'
     ]
