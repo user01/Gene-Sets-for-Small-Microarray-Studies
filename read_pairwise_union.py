@@ -30,7 +30,7 @@ args = parser.parse_args()
 #     'results/combined.tsv'
 # ]))
 
-paths = glob.glob(args.input)
+paths = glob.glob(args.input.replace('"',''))
 
 def leader_conversion(path):
     df = pd.read_table(path) \

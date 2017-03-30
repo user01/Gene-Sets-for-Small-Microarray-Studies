@@ -274,7 +274,7 @@ const read_pairwise_union = (python_binary = 'python3') => {
     false, python_binary, [
       'read_pairwise_union.py',
       '--input',
-      '**/**/*.sets.leaders.tsv',
+      `"**/**/*.sets.leaders.tsv"`,
       '--output',
       'results/combined.tsv'
     ]
