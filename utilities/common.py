@@ -136,5 +136,9 @@ def pairs_to_sets_(pairs, gene_sets, min_size, max_size):
 
         pairs = pairs.tail(-1)
 
+        if any([len(ss) > max_size*1.2 for ss in gene_sets]):
+            print("Exiting early - set too large")
+            break
+
     # return gene_sets
     return list(filter(lambda ss: len(ss) >= min_size and len(ss) <= max_size, gene_sets))
