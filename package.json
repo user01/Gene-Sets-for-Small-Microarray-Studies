@@ -4,9 +4,7 @@
   "description": "",
   "main": "make_classify.js",
   "scripts": {
-    "pairwise": "node make_pairwise.js",
-    "classify": "node make_classify.js",
-    "start": "node make_classify.js"
+    "start": "node make.js"
   },
   "repository": {
     "type": "git",

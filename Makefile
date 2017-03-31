@@ -1,4 +1,7 @@
 
+start:
+	node make.js
+
 clean:
 	-$(RM) results/*.tsv
 	-$(RM) results/*.csv
