@@ -56,3 +56,23 @@ The pipeline is controlled by `node make.js`. The javascript concurrency (number
 ## Tests
 
 Run tests with `make test` or `python -m unittest discover`.
+
+## Docker
+
+The docker image can be built with:
+
+```bash
+docker build -t localimage:0.1 .
+```
+
+Or run the public image with:
+
+```bash
+docker run --rm -it -v "$PWD":/home user01e/gscauva:1.0 bash
+```
+
+Or run the full set of pipelines with:
+
+```bash
+docker run --rm -it -v "$PWD":/home user01e/gscauva:1.0 bash -c "node make.js"
+```
