@@ -59,7 +59,7 @@ Run tests with `make test` or `python -m unittest discover`.
 
 ## Docker
 
-The docker image can be built with:
+The [docker image](https://hub.docker.com/r/user01e/gscauva/) can be built with:
 
 ```bash
 docker build -t localimage:0.1 .
