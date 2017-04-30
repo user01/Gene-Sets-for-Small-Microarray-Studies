@@ -53,6 +53,24 @@ The pipeline is controlled by `node make.js`. The javascript concurrency (number
 }
 ```
 
+## Results
+
+The [final report](reports/Gene.Set.Creation.Algorithm.for.Microarray.Studies.with.Low.Sample.Size.pdf) details the results of the full pipeline and analysis of results. The [poster](reports/poster.pdf) is a single sheet that covers the project.
+
+#### Enrichment Compared to Baseline
+
+Enrichment score compared to a set generated without bootstraps.
+
+![Enrichment compared to baseline](reports/Figure5.png "Enrichment compared to baseline")
+
+#### Enrichment of Gene Sets by Samples
+
+Average enrichment scores of each sample type compared to the gene sets for each cell type. Gene sets are in orange while averages samples are in black. Ideally, the gene set should only be enriched for the target cell type.
+
+![Enrichment of gene sets by sample](reports/Figure6.png "Enrichment of gene sets by sample")
+
+
+
 ## Tests
 
 Run tests with `make test` or `python -m unittest discover`.
